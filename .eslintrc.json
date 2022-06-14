@@ -1,0 +1,14 @@
+{
+  "extends": ["hardcore", "hardcore/node"],
+  "env": {
+    "browser": false,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "no-console": "off",
+    "import/no-unused-modules": "off"
+  }
+}

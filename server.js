@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 
 const server = express();
 
@@ -12,4 +12,4 @@ function keepAlive() {
   });
 }
 
-module.exports = keepAlive;
+export default keepAlive;

@@ -1,13 +1,13 @@
-const fs = require("node:fs");
-const { remove } = require("confusables");
-const { Client, Collection, Intents } = require("discord.js");
+import { readdirSync } from "node:fs";
+import { remove } from "confusables";
+import { Client, Collection, Intents } from "discord.js";
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
 const token = process.env["token"];
-const Database = require("@replit/database");
+import Database from "@replit/database";
 const db = new Database();
-const keepAlive = require("./server.js");
+import keepAlive from "./server.js";
 
 client.commands = new Collection();
 
@@ -84,9 +84,9 @@ let badWords = [
   "masturbe-se",
 ];
 
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
+const commandFiles = readdirSync("./commands").filter((file) =>
+  file.endsWith(".js")
+);
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);

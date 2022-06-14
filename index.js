@@ -11,7 +11,7 @@ import keepAlive from "./server.js";
 
 client.commands = new Collection();
 
-let badWords = [
+let badwords = [
   "vai se fude",
   "vai pro caralho",
   "caralhudo",
@@ -125,14 +125,14 @@ client.on("messageCreate", async (msg) => {
       id: msg.author.id,
       name: `${msg.author.username}`,
       img: msg.author.avatarURL(),
-      badWords: {},
+      badwords: {},
     };
     await db.set("usersData", data);
     data = await db.get("usersData");
     user = data["users"][msg.author.id];
   }
   let check = msg.content;
-  for (word of badWords) {
+  for (word of badwords) {
     let rgx = new RegExp("\\b" + remove(word) + "\\b", "ig");
     let bol = remove(check).match(rgx);
     if (bol) {
@@ -141,11 +141,11 @@ client.on("messageCreate", async (msg) => {
         .send(
           `Atenção! Um usuário disse uma palavra proibida: \n Nome: ${msg.author.username} \n Id: ${msg.author.id} \n Mensagem: ${msg.content} \n Link: ${msg.url}`
         );
-      if (!user.badWords[word]) {
-        data["users"][user["id"]].badWords[word] = 1;
+      if (!user.badwords[word]) {
+        data["users"][user["id"]].badwords[word] = 1;
         await db.set("usersData", data);
       } else {
-        data["users"][user["id"]].badWords[word]++;
+        data["users"][user["id"]].badwords[word]++;
         await db.set("usersData", data);
       }
     }

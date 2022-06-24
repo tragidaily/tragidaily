@@ -8,8 +8,7 @@ import { keepAlive } from "./server.js";
 import { readCommands } from "./handler.js";
 
 (async () => {
-  const { militadas, artes, submundoChat, submundoHumorNegro }
-    = discord.channels;
+  const { submundoChat, submundoHumorNegro } = discord.channels;
   const intents = [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES];
   const client = new Client({ intents });
   const database = new Database();
@@ -23,16 +22,6 @@ import { readCommands } from "./handler.js";
     if (message.author.bot) {
       return;
     }
-    if (message.channelId == militadas.id || message.channelId == artes.id) {
-      let rg =
-        /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/;
-      if (!message.attachments.firstKey() && !message.content.match(rg)) {
-        // Delete after one second.
-        const oneSecond = 1000;
-        setTimeout(() => message.delete(), oneSecond);
-      }
-    }
-
     if (
       message.channelId == submundoChat.id ||
       message.channelId == submundoHumorNegro.id

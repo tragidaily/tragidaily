@@ -1,15 +1,18 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { MessageEmbed } from "discord.js";
 import Database from "@replit/database";
-const db = new Database(process.env.REPLIT_DB_URL);
+import { MessageEmbed } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
-export const data = new SlashCommandBuilder()
+import config from "../config.js";
+
+const database = new Database(config.replitDatabaseUrl);
+
+const data = new SlashCommandBuilder()
   .setName("comportamento")
   .setDescription("Verifique o comportamento de um usuário!")
   .addStringOption((option) =>
     option
       .setName("id")
-      .setDescription("Digite o ID do usuário")
+      .setDescription("Digite o ID do usuário.")
       .setRequired(true)
   )
   .addBooleanOption((option) =>
@@ -17,11 +20,14 @@ export const data = new SlashCommandBuilder()
       .setName("mostrar")
       .setDescription("Mostra a lista de palavras proibidas.")
   );
-export async function execute(interaction) {
+
+async function receive() {}
+
+async function execute(interaction) {
   const action = await interaction;
   const adm = interaction.member.roles.cache.get("864720804691050496");
   const mod = interaction.member.roles.cache.get("959787387184107580");
-  let data = await db.get("usersData");
+  let data = await database.get("usersData");
   let users = data["users"];
   const id = action.options.getString("id");
   const bool = action.options.getBoolean("mostrar");
@@ -80,3 +86,7 @@ export async function execute(interaction) {
     });
   }
 }
+
+const command = { data, receive, execute };
+
+export default command;

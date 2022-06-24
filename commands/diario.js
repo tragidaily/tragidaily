@@ -1,7 +1,14 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { MessageEmbed } from "discord.js";
+// eslint-disable-next-line import/no-namespace
+import * as linkify from "linkifyjs";
 
-export const data = new SlashCommandBuilder()
+import { discord } from "../config.js";
+
+
+// TODO(cahian): Create an abstraction that allow you to instantiate a
+// SlashCommand and a MessageEmbed and set that instance with a json file.
+const data = new SlashCommandBuilder()
   .setName("diario")
   .setDescription("Divulgue um acontecimento!!")
   .addStringOption((option) =>
@@ -39,7 +46,21 @@ export const data = new SlashCommandBuilder()
   .addStringOption((option) =>
     option.setName("cor").setDescription("Escolha uma cor para a exibição.")
   );
-export async function execute(interaction) {
+
+async function receive(message) {
+  const { channelId, attachments, content } = message;
+  const { militadas, artes } = discord.channels;
+
+  if (channelId == militadas.id || channelId == artes.id) {
+    if (!attachments.size && !linkify.test(content, "url")) {
+      // Delete after one second.
+      setTimeout(() => message.delete(), 1000);
+    }
+  }
+}
+
+async function execute(interaction) {
+  const { diario, journal } = discord.channels;
   const action = await interaction;
   try {
     let url = new URL(action.options.getString("imagem"));
@@ -97,7 +118,7 @@ export async function execute(interaction) {
 
     if (interaction.member.roles.cache.get("968688946043310150")) {
       action.client.channels.cache
-        .find((channel) => channel.id == "968689805762367558")
+        .find((channel) => channel.id == diarioChannelId)
         .send({ embeds: [exampleEmbed] });
       action.reply({
         content: "Sua notícia foi publicada!",
@@ -106,7 +127,7 @@ export async function execute(interaction) {
       action.deleteReply();
     } else {
       action.client.channels.cache
-        .find((channel) => channel.id == "921501414847545394")
+        .find((channel) => channel.id == jornalChannelId)
         .send({ embeds: [exampleEmbed] });
       action.reply({
         content: "Sua notícia foi publicada!",
@@ -121,3 +142,7 @@ export async function execute(interaction) {
     });
   }
 }
+
+const command = { data, receive, execute };
+
+export default command;

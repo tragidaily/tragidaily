@@ -1,5 +1,5 @@
 /* eslint-disable node/no-process-env */
-import channels from "./channels.json";
+import server from "./server.json";
 
 const { TOKEN, GUILD_ID, CLIENT_ID, REPLIT_DB_URL } = process.env;
 
@@ -9,7 +9,7 @@ const config = {
     guildId: GUILD_ID,
     clientId: CLIENT_ID,
 
-    channels,
+    ...server,
   },
 
   replit: {

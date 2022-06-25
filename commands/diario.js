@@ -1,55 +1,68 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { readFileSync } from "node:fs";
+
+import { SlashCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { MessageEmbed } from "discord.js";
 // eslint-disable-next-line import/no-namespace
 import * as linkify from "linkifyjs";
 
-import { discord } from "../config.js";
+import config from "../config.js";
 
+function createSlashCommand(filepath) {
+  const json = JSON.parse(readFileSync(filepath));
+  const data = new SlashCommandBuilder();
+
+  for (const [key, value] of json["SlashCommand"]) {
+    switch (key) {
+      case "name":
+        data.setName(value);
+        break;
+      case "description":
+        data.setDescription(value);
+        break;
+      case "options":
+        for (const optionJson of value) {
+          addSlashCommandOption(data, optionJson);
+        });
+        break;
+    }
+  }
+
+  return data;
+}
+
+function addSlashCommandOption(data, optionJson) {
+  // For example, from "string" to "String".
+  const optionType = toUpperCaseFirstCharacter(optionJson["type"]);
+
+  data[`add${optionType}Option`]((optionData) => {
+    for (const [key, value] of optionJson) {
+      switch (key) {
+        case "name":
+          optionData.setName(value);
+          break;
+        case "description":
+          optionData.setDescription(value);
+          break;
+        case "required":
+          optionData.setRequired(value);
+          break;
+      }
+    }
+  }
+}
+
+function toUpperCaseFirstCharacter(string) {
+  string[0] = string[0].toUpperCase();
+  return string;
+}
 
 // TODO(cahian): Create an abstraction that allow you to instantiate a
 // SlashCommand and a MessageEmbed and set that instance with a json file.
-const data = new SlashCommandBuilder()
-  .setName("diario")
-  .setDescription("Divulgue um acontecimento!!")
-  .addStringOption((option) =>
-    option
-      .setName("título")
-      .setDescription("Escreva seu título!")
-      .setRequired(true)
-  )
-  .addStringOption((option) =>
-    option
-      .setName("descrição")
-      .setDescription("Descreva sua notícia.")
-      .setRequired(true)
-  )
-  .addStringOption((option) =>
-    option
-      .setName("imagem")
-      .setDescription("Url de uma imagem.")
-      .setRequired(true)
-  )
-  .addStringOption((option) =>
-    option.setName("autor").setDescription("Declare o autor do conteúdo.")
-  )
-  .addStringOption((option) =>
-    option.setName("subtitulo").setDescription("Adicione um subtitulo.")
-  )
-  .addStringOption((option) =>
-    option
-      .setName("subdescrição")
-      .setDescription("Adicione uma descrição ao subtitulo.")
-  )
-  .addStringOption((option) =>
-    option.setName("fonte").setDescription("Adicione uma fonte a notícia.")
-  )
-  .addStringOption((option) =>
-    option.setName("cor").setDescription("Escolha uma cor para a exibição.")
-  );
+const data = createSlashCommand("./diario.json");
 
 async function receive(message) {
   const { channelId, attachments, content } = message;
-  const { militadas, artes } = discord.channels;
+  const { militadas, artes } = config.discord.channels;
 
   if (channelId == militadas.id || channelId == artes.id) {
     if (!attachments.size && !linkify.test(content, "url")) {
@@ -60,7 +73,7 @@ async function receive(message) {
 }
 
 async function execute(interaction) {
-  const { diario, journal } = discord.channels;
+  const { diario, journal } = config.discord.channels;
   const action = await interaction;
   try {
     let url = new URL(action.options.getString("imagem"));

@@ -5,7 +5,7 @@ import { Collection } from "discord.js";
 
 function importModules(paths) {
   // eslint-disable-next-line import/no-dynamic-require
-  return Promise.all(paths.map((value) => import(value)));
+  return Promise.all(paths.map((path) => import(path)));
 }
 
 async function readCommands() {

@@ -1,65 +1,27 @@
-import { remove } from "confusables";
 import { Client, Intents } from "discord.js";
-import Database from "@replit/database";
 
-import badwords from "./badwords.js";
-import { discord } from "./config.js";
-import { keepAlive } from "./server.js";
 import { readCommands } from "./handler.js";
+import { keepAlive } from "./server.js";
+import config from "./config.js";
 
 (async () => {
-  const { submundoChat, submundoHumorNegro } = discord.channels;
-  const intents = [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES];
-  const client = new Client({ intents });
-  const database = new Database();
-  const commands = await readCommands();
+  const client = new Client({
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+  });
+
+  client.commands = await readCommands();
 
   client.once("ready", () => {
     console.log("Bot is ready!");
   });
 
   client.on("messageCreate", async (message) => {
-    if (message.author.bot) {
-      return;
-    }
-    if (
-      message.channelId == submundoChat.id ||
-      message.channelId == submundoHumorNegro.id
-    ) {
-      return;
-    }
-    let data = await database.get("usersData");
-    let user = data["users"][message.author.id];
-
-    if (!user) {
-      data["users"][message.author.id] = {
-        id: message.author.id,
-        name: `${message.author.username}`,
-        img: message.author.avatarURL(),
-        badwords: {},
-      };
-      await database.set("usersData", data);
-      data = await database.get("usersData");
-      user = data["users"][message.author.id];
-    }
-    let check = message.content;
-    for (word of badwords) {
-      let rgx = new RegExp("\\b" + remove(word) + "\\b", "ig");
-      let bol = remove(check).match(rgx);
-      if (bol) {
-        message.client.channels.cache
-          .find((ch) => ch.id == channelIds.report)
-          .send(
-            `Atenção! Um usuário disse uma palavra proibida: \n Nome: ${message.author.username} \n Id: ${message.author.id} \n Mensagem: ${message.content} \n Link: ${message.url}`
-          );
-        if (!user.badwords[word]) {
-          data["users"][user["id"]].badwords[word] = 1;
-          await database.set("usersData", data);
-        } else {
-          data["users"][user["id"]].badwords[word]++;
-          await database.set("usersData", data);
-        }
+    try {
+      for (const command of client.commands) {
+        command.receive(message);
       }
+    } catch (error) {
+      console.error(error);
     }
   });
 
@@ -85,7 +47,7 @@ import { readCommands } from "./handler.js";
     }
   });
 
-  client.login(token);
+  client.login(config.discord.token);
 
   keepAlive();
 })();

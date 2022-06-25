@@ -1,7 +1,9 @@
 import Database from "@replit/database";
 import { MessageEmbed } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { remove } from "confusables";
 
+import badwords from "../badwords.js";
 import config from "../config.js";
 
 const database = new Database(config.replitDatabaseUrl);
@@ -21,7 +23,52 @@ const data = new SlashCommandBuilder()
       .setDescription("Mostra a lista de palavras proibidas.")
   );
 
-async function receive() {}
+async function receive() {
+  if (message.author.bot) {
+    return;
+  }
+
+  const { submundoChat, submundoHumorNegro } = discord.channels;
+  if (
+    message.channelId == submundoChat.id ||
+    message.channelId == submundoHumorNegro.id
+  ) {
+    return;
+  }
+  let data = await database.get("usersData");
+  let user = data["users"][message.author.id];
+
+  if (!user) {
+    data["users"][message.author.id] = {
+      id: message.author.id,
+      name: `${message.author.username}`,
+      img: message.author.avatarURL(),
+      badwords: {},
+    };
+    await database.set("usersData", data);
+    data = await database.get("usersData");
+    user = data["users"][message.author.id];
+  }
+  let check = message.content;
+  for (word of badwords) {
+    let rgx = new RegExp("\\b" + remove(word) + "\\b", "ig");
+    let bol = remove(check).match(rgx);
+    if (bol) {
+      message.client.channels.cache
+        .find((ch) => ch.id == channelIds.report)
+        .send(
+          `Atenção! Um usuário disse uma palavra proibida: \n Nome: ${message.author.username} \n Id: ${message.author.id} \n Mensagem: ${message.content} \n Link: ${message.url}`
+        );
+      if (!user.badwords[word]) {
+        data["users"][user["id"]].badwords[word] = 1;
+        await database.set("usersData", data);
+      } else {
+        data["users"][user["id"]].badwords[word]++;
+        await database.set("usersData", data);
+      }
+    }
+  }
+}
 
 async function execute(interaction) {
   const action = await interaction;

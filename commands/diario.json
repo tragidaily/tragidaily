@@ -1,0 +1,56 @@
+{
+  "SlashCommand": {
+    "name": "diario",
+    "description": "Divulgue um acontecimento!",
+    "options": [
+      {
+        "type": "string",
+        "name": "fonte",
+        "description": "Coloque o link da noticia",
+        "required": true
+      },
+      {
+        "type": "string",
+        "name": "titulo",
+        "description": "Escreva o titulo da noticia",
+        "required": true
+      },
+      {
+        "type": "string",
+        "name": "descricao",
+        "description": "Coloque o conteúdo da noticia",
+        "required": true
+      },
+      {
+        "type": "string",
+        "name": "imagem",
+        "description": "Envie a imagem da noticia",
+        "required": true
+      },
+      {
+        "type": "string",
+        "name": "subtitulo",
+        "description": "Escreva subtitulo da postagem",
+        "required": false
+      },
+      {
+        "type": "string",
+        "name": "subdescricao",
+        "description": "Insira o conteudo da postagem",
+        "required": false
+      },
+      {
+        "type": "string",
+        "name": "autor",
+        "description": "Declare o autor do conteudo",
+        "required": false
+      },
+      {
+        "type": "string",
+        "name": "cor",
+        "description": "autor",
+        "required": false
+      }
+    ]
+  }
+}

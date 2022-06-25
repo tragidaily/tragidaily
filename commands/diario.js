@@ -1,63 +1,11 @@
-import { readFileSync } from "node:fs";
-
-import { SlashCommandBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import { MessageEmbed } from "discord.js";
-// eslint-disable-next-line import/no-namespace
 import * as linkify from "linkifyjs";
 
+import { createSlashCommand } from "../builder.js";
 import config from "../config.js";
 
-function createSlashCommand(filepath) {
-  const json = JSON.parse(readFileSync(filepath));
-  const data = new SlashCommandBuilder();
+function createMessageEmbed(options, user) {}
 
-  for (const [key, value] of json["SlashCommand"]) {
-    switch (key) {
-      case "name":
-        data.setName(value);
-        break;
-      case "description":
-        data.setDescription(value);
-        break;
-      case "options":
-        for (const optionJson of value) {
-          addSlashCommandOption(data, optionJson);
-        });
-        break;
-    }
-  }
-
-  return data;
-}
-
-function addSlashCommandOption(data, optionJson) {
-  // For example, from "string" to "String".
-  const optionType = toUpperCaseFirstCharacter(optionJson["type"]);
-
-  data[`add${optionType}Option`]((optionData) => {
-    for (const [key, value] of optionJson) {
-      switch (key) {
-        case "name":
-          optionData.setName(value);
-          break;
-        case "description":
-          optionData.setDescription(value);
-          break;
-        case "required":
-          optionData.setRequired(value);
-          break;
-      }
-    }
-  }
-}
-
-function toUpperCaseFirstCharacter(string) {
-  string[0] = string[0].toUpperCase();
-  return string;
-}
-
-// TODO(cahian): Create an abstraction that allow you to instantiate a
-// SlashCommand and a MessageEmbed and set that instance with a json file.
 const data = createSlashCommand("./diario.json");
 
 async function receive(message) {

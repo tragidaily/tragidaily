@@ -5,30 +5,18 @@ import { remove } from "confusables";
 
 import badwords from "../badwords.js";
 import config from "../config.js";
+import { createSlashCommand }
 
-const database = new Database(config.replitDatabaseUrl);
+const database = new Database(config.replit.databaseUrl);
 
-const data = new SlashCommandBuilder()
-  .setName("comportamento")
-  .setDescription("Verifique o comportamento de um usuário!")
-  .addStringOption((option) =>
-    option
-      .setName("id")
-      .setDescription("Digite o ID do usuário.")
-      .setRequired(true)
-  )
-  .addBooleanOption((option) =>
-    option
-      .setName("mostrar")
-      .setDescription("Mostra a lista de palavras proibidas.")
-  );
+const data = createSlashCommand("./comportamento.json");
 
-async function receive() {
+async function receive(message) {
   if (message.author.bot) {
     return;
   }
 
-  const { submundoChat, submundoHumorNegro } = discord.channels;
+  const { submundoChat, submundoHumorNegro } = config.discord.channels;
   if (
     message.channelId == submundoChat.id ||
     message.channelId == submundoHumorNegro.id

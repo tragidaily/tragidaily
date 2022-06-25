@@ -1,0 +1,20 @@
+{
+  "slashCommand": {
+    "name": "comportamento",
+    "description": "Verifique o comportamento de um usuario!"
+    "options": [
+      {
+        "type": "user",
+        "name": "id",
+        "description": "O usuario alvo",
+        "required": true
+      },
+      {
+        "type": "boolean",
+        "name": "mostrar",
+        "description": "Mostra a lista de palavras proibidas",
+        "required": false
+      }
+    ]
+  }
+}

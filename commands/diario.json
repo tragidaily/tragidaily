@@ -1,5 +1,5 @@
 {
-  "SlashCommand": {
+  "slashCommand": {
     "name": "diario",
     "description": "Divulgue um acontecimento!",
     "options": [

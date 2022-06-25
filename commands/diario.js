@@ -4,7 +4,62 @@ import * as linkify from "linkifyjs";
 import { createSlashCommand } from "../builder.js";
 import config from "../config.js";
 
-function createMessageEmbed(options, user) {}
+function createMessageEmbed(options, user) {
+  let url = new URL(action.options.getString("imagem"));
+  let autor = "";
+  if (action.options.getString("autor")) {
+    autor = " - Autor: " + action.options.getString("autor");
+  }
+
+  const exampleEmbed = new MessageEmbed()
+    .setColor("#b80000")
+    .setTitle(action.options.getString("título"))
+    .setDescription(action.options.getString("descrição"))
+    .setThumbnail(
+      "https://cdn.discordapp.com/attachments/844699066930954302/968664576013004861/Tragi.png"
+    )
+    .setImage(action.options.getString("imagem"))
+    .setTimestamp()
+    .setFooter({
+      text: "Publicado por: " + action.user.username + autor,
+      iconURL: action.user.avatarURL(),
+    });
+
+  let subtitulo = action.options.getString("subtitulo"),
+    subdescrição = action.options.getString("subdescrição");
+  let fonte = action.options.getString("fonte"),
+    cor = action.options.getString("cor");
+
+  if (fonte) {
+    let url2 = new URL(fonte);
+    exampleEmbed.setURL(fonte);
+  }
+
+  if (cor) {
+    let cores = {
+      vermelho: "#ed0000",
+      laranja: "#ff8000",
+      amarelo: "#fff200",
+      verde: "#48ff00",
+      azul: "#005eff",
+      roxo: "#a600ed",
+      rosa: "#ff00f7",
+      branco: "#ffffff",
+      preto: "#000000",
+    };
+    if (cores[cor]) {
+      exampleEmbed.setColor(cores[cor]);
+    }
+  }
+
+  if (subtitulo) {
+    let field = { name: subtitulo, value: "-" };
+    if (subdescrição) field["value"] = subdescrição;
+    exampleEmbed.addFields(field);
+  }
+
+
+}
 
 const data = createSlashCommand("./diario.json");
 
@@ -22,82 +77,28 @@ async function receive(message) {
 
 async function execute(interaction) {
   const { diario, journal } = config.discord.channels;
-  const action = await interaction;
   try {
-    let url = new URL(action.options.getString("imagem"));
-    let autor = "";
-    if (action.options.getString("autor")) {
-      autor = " - Autor: " + action.options.getString("autor");
-    }
-
-    const exampleEmbed = new MessageEmbed()
-      .setColor("#b80000")
-      .setTitle(action.options.getString("título"))
-      .setDescription(action.options.getString("descrição"))
-      .setThumbnail(
-        "https://cdn.discordapp.com/attachments/844699066930954302/968664576013004861/Tragi.png"
-      )
-      .setImage(action.options.getString("imagem"))
-      .setTimestamp()
-      .setFooter({
-        text: "Publicado por: " + action.user.username + autor,
-        iconURL: action.user.avatarURL(),
-      });
-
-    let subtitulo = action.options.getString("subtitulo"),
-      subdescrição = action.options.getString("subdescrição");
-    let fonte = action.options.getString("fonte"),
-      cor = action.options.getString("cor");
-
-    if (fonte) {
-      let url2 = new URL(fonte);
-      exampleEmbed.setURL(fonte);
-    }
-
-    if (cor) {
-      let cores = {
-        vermelho: "#ed0000",
-        laranja: "#ff8000",
-        amarelo: "#fff200",
-        verde: "#48ff00",
-        azul: "#005eff",
-        roxo: "#a600ed",
-        rosa: "#ff00f7",
-        branco: "#ffffff",
-        preto: "#000000",
-      };
-      if (cores[cor]) {
-        exampleEmbed.setColor(cores[cor]);
-      }
-    }
-
-    if (subtitulo) {
-      let field = { name: subtitulo, value: "-" };
-      if (subdescrição) field["value"] = subdescrição;
-      exampleEmbed.addFields(field);
-    }
-
     if (interaction.member.roles.cache.get("968688946043310150")) {
-      action.client.channels.cache
+      interaction.client.channels.cache
         .find((channel) => channel.id == diarioChannelId)
         .send({ embeds: [exampleEmbed] });
-      action.reply({
+      interaction.reply({
         content: "Sua notícia foi publicada!",
         ephemeral: false,
       });
-      action.deleteReply();
+      interaction.deleteReply();
     } else {
-      action.client.channels.cache
+      interaction.client.channels.cache
         .find((channel) => channel.id == jornalChannelId)
         .send({ embeds: [exampleEmbed] });
-      action.reply({
+      interaction.reply({
         content: "Sua notícia foi publicada!",
         ephemeral: false,
       });
-      action.deleteReply();
+      interaction.deleteReply();
     }
   } catch (error) {
-    action.reply({
+    await interaction.reply({
       content: "URL inválido. Tente novamente!",
       ephemeral: true,
     });

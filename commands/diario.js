@@ -64,11 +64,11 @@ async function receive(message) {
   const { channelId, attachments, content } = message;
   const { militadas, artes } = config.discord.channels;
 
-  if (channelId == militadas.id || channelId == artes.id) {
-    if (!attachments.size && !linkify.test(content, "url")) {
-      // Delete after one second.
-      setTimeout(() => message.delete(), 1000);
-    }
+  if (
+    (channelId == militadas.id || channelId == artes.id) &&
+    (!attachments.size && !linkify.test(content, "url"))
+  ) {
+    setTimeout(() => message.delete(), 1000);
   }
 }
 

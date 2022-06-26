@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { remove } from "confusables";
 
 import badwords from "../badwords.js";
-import config from "../config.js";
+import config from "../../config.js";
 import { createSlashCommand }
 
 const database = new Database(config.replit.databaseUrl);
@@ -116,7 +116,7 @@ async function execute(interaction) {
     }
   } else {
     action.reply({
-      content: "Nenhum usuário com este ID!",
+      content: "Nenhum usuário com este ID.",
       ephemeral: true,
     });
   }

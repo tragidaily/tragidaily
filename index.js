@@ -1,8 +1,8 @@
 import { Client, Intents } from "discord.js";
 
+import config from "./config.js";
 import { readCommandsModules } from "./src/handler.js";
 import { keepAlive } from "./src/server.js";
-import config from "./config.js";
 
 (async () => {
   const client = new Client({
@@ -41,7 +41,7 @@ import config from "./config.js";
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "There was an error while executing this command!",
+        content: "There was an error while executing this command.",
         ephemeral: true,
       });
     }

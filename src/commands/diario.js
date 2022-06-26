@@ -2,33 +2,33 @@ import { MessageEmbed } from "discord.js";
 import * as linkify from "linkifyjs";
 
 import { createSlashCommand } from "../builder.js";
-import config from "../config.js";
+import config from "../../config.js";
 
 function createMessageEmbed(options, user) {
-  let url = new URL(action.options.getString("imagem"));
+  let url = new URL(options.getString("imagem"));
   let autor = "";
-  if (action.options.getString("autor")) {
-    autor = " - Autor: " + action.options.getString("autor");
+  if (options.getString("autor")) {
+    autor = " - Autor: " + options.getString("autor");
   }
 
   const exampleEmbed = new MessageEmbed()
     .setColor("#b80000")
-    .setTitle(action.options.getString("título"))
-    .setDescription(action.options.getString("descrição"))
+    .setTitle(options.getString("título"))
+    .setDescription(options.getString("descrição"))
     .setThumbnail(
       "https://cdn.discordapp.com/attachments/844699066930954302/968664576013004861/Tragi.png"
     )
-    .setImage(action.options.getString("imagem"))
+    .setImage(options.getString("imagem"))
     .setTimestamp()
     .setFooter({
-      text: "Publicado por: " + action.user.username + autor,
-      iconURL: action.user.avatarURL(),
+      text: "Publicado por: " + user.username + autor,
+      iconURL: user.avatarURL(),
     });
 
-  let subtitulo = action.options.getString("subtitulo"),
-    subdescrição = action.options.getString("subdescrição");
-  let fonte = action.options.getString("fonte"),
-    cor = action.options.getString("cor");
+  let subtitulo = options.getString("subtitulo"),
+    subdescrição = options.getString("subdescrição");
+  let fonte = options.getString("fonte"),
+    cor = options.getString("cor");
 
   if (fonte) {
     let url2 = new URL(fonte);
@@ -58,14 +58,14 @@ function createMessageEmbed(options, user) {
     exampleEmbed.addFields(field);
   }
 
-
+  return exampleEmbed;
 }
 
 const data = createSlashCommand("./diario.json");
 
 async function receive(message) {
-  const { channelId, attachments, content } = message;
   const { militadas, artes } = config.discord.channels;
+  const { channelId, attachments, content } = message;
 
   if (
     (channelId == militadas.id || channelId == artes.id) &&
@@ -76,30 +76,25 @@ async function receive(message) {
 }
 
 async function execute(interaction) {
-  const { diario, journal } = config.discord.channels;
+  const { channels, roles } = config.discord;
+  const { client, member } = interaction;
+
   try {
-    if (interaction.member.roles.cache.get("968688946043310150")) {
-      interaction.client.channels.cache
-        .find((channel) => channel.id == diarioChannelId)
-        .send({ embeds: [exampleEmbed] });
-      interaction.reply({
-        content: "Sua notícia foi publicada!",
-        ephemeral: false,
-      });
-      interaction.deleteReply();
-    } else {
-      interaction.client.channels.cache
-        .find((channel) => channel.id == jornalChannelId)
-        .send({ embeds: [exampleEmbed] });
-      interaction.reply({
-        content: "Sua notícia foi publicada!",
-        ephemeral: false,
-      });
-      interaction.deleteReply();
-    }
+    const role = member.roles.cache.get("968688946043310150");
+    const channelId = role ? channels.diario.id : channels.journal.id;
+    const channel = client.channels.cache.get(channelId);
+    const embed = createMessageEmbed();
+
+    channel.send({ embeds: [exampleEmbed] });
+
+    await interaction.reply({
+      content: "Sua noticia foi publicada!",
+      ephemeral: false,
+    });
+    interaction.deleteReply(); // NOTE: Why deleteReply after reply?!?!?
   } catch (error) {
     await interaction.reply({
-      content: "URL inválido. Tente novamente!",
+      content: "URL invalido. Tente novamente!",
       ephemeral: true,
     });
   }

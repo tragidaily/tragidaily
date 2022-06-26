@@ -1,18 +1,15 @@
 import express from "express";
 
-const server = express();
+const app = express();
 
-server.all("/", (req, res) => {
+app.all("/", (req, res) => {
   res.send("Bot is running!");
 });
 
 function keepAlive() {
-  const port = 3000;
-
-  return server.listen(port, () => {
-    console.log("Server is ready!");
+  return app.listen(3000, () => {
+    console.log("Server is running!");
   });
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export { keepAlive };

@@ -1,33 +1,48 @@
-import path from "node:path";
-import { readdirSync } from "node:fs";
+import { join as joinPath } from "node:path";
+import { readdir as readDirectory } from "node:fs";
 
 import { Collection } from "discord.js";
 
 function importModules(paths) {
-  // eslint-disable-next-line import/no-dynamic-require
-  return Promise.all(paths.map((path) => import(path)));
+  const modules = [];
+
+  for (const path of paths) {
+    modules.push(import(path));
+  }
+
+  return Promise.all(modules);
 }
 
 async function readCommands() {
-  const directory = path.join(import.meta.url, "commands");
+  const directory = joinPath(import.meta.url, "commands");
 
-  const filepaths = readdirSync(directory)
-    .filter((filename) => filename.endsWith(".js"))
-    .map((filename) => path.join(directory, filename));
+  const filepaths = [];
 
-  const modules = await importModules(filepaths);
+  for (const filename of await readDirectory(directory)) {
+    if (filename.endsWith(".js")) {
+      filepaths.push(joinPath(directory, filename))
+    }
+  }
 
-  const entries = modules.map((command) => [command.data.name, command]);
+  const commands = new Collection();
 
-  return new Collection(entries);
+  for (const command of await importModules(filepaths)) {
+    commands.set(command.data.name, command);
+  }
+
+  return commands;
 }
 
 async function readCommandJSONs() {
   const commands = await readCommands();
 
-  const values = commands.values();
+  const commandJSONs = [];
 
-  return values.map((command) => command.data.toJSON());
+  for (const [key, value] of commands) {
+    commandJSONs.push(value.data.toJSON());
+  }
+
+  return commandJSONs;
 }
 
 export { readCommands, readCommandJSONs };

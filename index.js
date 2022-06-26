@@ -2,7 +2,7 @@ import { Client, Intents } from "discord.js";
 
 import { readCommands } from "./src/handler.js";
 import { keepAlive } from "./src/server.js";
-import config from "./src/config.js";
+import config from "./config.js";
 
 (async () => {
   const client = new Client({

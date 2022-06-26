@@ -3,41 +3,44 @@ import fs from "node:fs";
 
 import { Collection } from "discord.js";
 
+function getCurrentModuleFilename() {
+  return new URL(import.meta.url).pathname;
+}
+
 function getCurrentModuleDirname() {
-  return path.dirname(new URL(import.meta.url).pathname);
+  return path.dirname(getCurrentModuleFilename());
 }
 
 function getCommandsDirname() {
   return path.join(getCurrentModuleDirname(), "commands");
 }
 
-async function getCommandsFilenames() {
+function getCommandsFilenames() {
   const commandsDirname = getCommandsDirname();
 
   const commandsFilenames = [];
 
-  for (const commandsFilenames of await fs.readdir(commandsDirname)) {
-    if (commandsFilenames.endsWith(".js")) {
-      commandsFilenames.push(commandsFilenames);
-      // commandFilename.push(path.join(commandDirname, commandFilename)); ??!?
+  for (const commandsFilename of fs.readdirSync(commandsDirname)) {
+    if (commandsFilename.endsWith(".js")) {
+      commandsFilenames.push(path.join(commandsDirname, commandsFilename));
     }
   }
 
   return commandsFilenames;
 }
 
-function importModules(modulesFilenames) {
+function importModules(modulesNames) {
   const modules = [];
 
-  for (const moduleFilename of modulesFilenames) {
-    modules.push(import(moduleFilename));
+  for (const moduleName of modulesNames) {
+    modules.push(import(moduleName));
   }
 
   return Promise.all(modules);
 }
 
 async function readCommandsModules() {
-  const commandsFilenames = await readCommandsFilenames();
+  const commandsFilenames = getCommandsFilenames();
 
   const commands = new Collection();
 

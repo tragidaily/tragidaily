@@ -80,7 +80,7 @@ async function execute(interaction) {
   const { client, member } = interaction;
 
   try {
-    const role = member.roles.cache.get("968688946043310150");
+    const role = member.roles.cache.get(roles.jornalistaInvestigativo);
     const channelId = role ? channels.diario.id : channels.journal.id;
     const channel = client.channels.cache.get(channelId);
     const embed = createMessageEmbed();

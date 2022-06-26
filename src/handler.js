@@ -1,40 +1,55 @@
-import { join as joinPath } from "node:path";
-import { readdir as readDirectory } from "node:fs";
+import path from "node:path";
+import fs from "node:fs";
 
 import { Collection } from "discord.js";
 
-function importModules(paths) {
+function getCurrentModuleDirname() {
+  return path.dirname(new URL(import.meta.url).pathname);
+}
+
+function getCommandsDirname() {
+  return path.join(getCurrentModuleDirname(), "commands");
+}
+
+async function getCommandsFilenames() {
+  const commandsDirname = getCommandsDirname();
+
+  const commandsFilenames = [];
+
+  for (const commandsFilenames of await fs.readdir(commandsDirname)) {
+    if (commandsFilenames.endsWith(".js")) {
+      commandsFilenames.push(commandsFilenames);
+      // commandFilename.push(path.join(commandDirname, commandFilename)); ??!?
+    }
+  }
+
+  return commandsFilenames;
+}
+
+function importModules(modulesFilenames) {
   const modules = [];
 
-  for (const path of paths) {
-    modules.push(import(path));
+  for (const moduleFilename of modulesFilenames) {
+    modules.push(import(moduleFilename));
   }
 
   return Promise.all(modules);
 }
 
-async function readCommands() {
-  const directory = joinPath(import.meta.url, "commands");
-
-  const filepaths = [];
-
-  for (const filename of await readDirectory(directory)) {
-    if (filename.endsWith(".js")) {
-      filepaths.push(joinPath(directory, filename))
-    }
-  }
+async function readCommandsModules() {
+  const commandsFilenames = await readCommandsFilenames();
 
   const commands = new Collection();
 
-  for (const command of await importModules(filepaths)) {
+  for (const command of await importModules(commandsFilenames)) {
     commands.set(command.data.name, command);
   }
 
   return commands;
 }
 
-async function readCommandJSONs() {
-  const commands = await readCommands();
+async function readCommandsJSONs() {
+  const commands = await readCommandsModules();
 
   const commandJSONs = [];
 
@@ -45,4 +60,4 @@ async function readCommandJSONs() {
   return commandJSONs;
 }
 
-export { readCommands, readCommandJSONs };
+export { readCommandsModules, readCommandsJSONs };

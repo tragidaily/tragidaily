@@ -1,6 +1,6 @@
 import { Client, Intents } from "discord.js";
 
-import { readCommands } from "./src/handler.js";
+import { readCommandsModules } from "./src/handler.js";
 import { keepAlive } from "./src/server.js";
 import config from "./config.js";
 
@@ -9,7 +9,7 @@ import config from "./config.js";
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
   });
 
-  client.commands = await readCommands();
+  client.commands = await readCommandsModules();
 
   client.once("ready", () => {
     console.log("Bot is ready!");

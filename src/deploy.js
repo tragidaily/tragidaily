@@ -2,13 +2,13 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 
 import config from "./config.js";
-import { readCommandJSONs } from "./handler.js";
+import { readCommandsJSONs } from "./handler.js";
 
 (async () => {
   try {
     const { token, clientId, guildId } = config;
     const rest = new REST({ version: "9" }).setToken(token);
-    const commands = await readCommandJSONs();
+    const commands = await readCommandsJSONs();
 
     console.log("Started refreshing application (/) commands.");
     await (guildId

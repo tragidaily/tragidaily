@@ -1,7 +1,6 @@
-// TODO(cahian): Improve this list by increasing the number of words and
-// avoiding unnecessary repetitions.
-// TODO(cahian): Instead of "fodida", "fudido" just "fudid" or /fudid\w/
-// TODO(cahian): Rename back from badwords to badWords
+// TODO(cahian): Avoid unnecessary repetitions. Instead of "fodida", "fudido"
+// just "fudid" or /fudid\w/
+// TODO: Increase the number of words
 const badwords = [
   "vai se fude",
   "vai pro caralho",
@@ -75,6 +74,4 @@ const badwords = [
   "masturbe-se",
 ];
 
-// TODO(cahian): Rename this file from badwords to words
-// TODO(cahian): Change from `export default badWords` to `export { badWords }`
 export default badwords;

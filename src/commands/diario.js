@@ -1,13 +1,14 @@
 import { MessageEmbed } from "discord.js";
-import * as linkify from "linkifyjs";
 
 import { createSlashCommand } from "../builder.js";
+import { checkURL, hasURL } from "../urlutils.js";
 import config from "../../config.js";
 
 function createMessageEmbed(user) {
   const { options } = user;
 
-  // TODO: Check if Image and URL are valid URLs.
+  checkURL(options.getString("fonte"));
+  checkURL(options.getString("imagem"));
 
   const colors = {
     undefined: "#b80000",
@@ -23,11 +24,11 @@ function createMessageEmbed(user) {
   };
 
   const messageEmbed = new MessageEmbed()
-    .setURL(options.getString("fonte")
+    .setURL(options.getString("fonte"))
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
-    .setColor(colors[options.get("cor")])
+    .setColor(colors[options.getString("cor")])
     .setThumbnail("./images/tragidaily.png")
     .setTimestamp();
 
@@ -54,21 +55,21 @@ function createMessageEmbed(user) {
 }
 
 const command = {
-  data: createSlashCommand("./diario.json");
+  data: createSlashCommand("./diario.json"),
 
-  async function receive(message) {
+  async receive(message) {
     const { militadas, artes } = config.discord.channels;
     const { channelId, attachments, content } = message;
 
     if (
-      (channelId == militadas.id || channelId == artes.id) &&
-      (!attachments.size && !linkify.test(content, "url"))
+      (channelId === militadas.id || channelId === artes.id) &&
+      (attachments.size === 0 && !includesURL(content))
     ) {
-      setTimeout(() => message.delete(), 1000);
+      await setTimeout(() => message.delete(), 1000);
     }
   }
 
-  async function execute(interaction) {
+  async execute(interaction) {
     const { channels, roles } = config.discord;
     const { client, member, user } = interaction;
 
@@ -86,14 +87,17 @@ const command = {
         content: "Sua noticia foi publicada!",
         ephemeral: false, // NOTE: true or false?
       });
-      // NOTE(Virgulas): Why deleteReply after reply?
+      // NOTE: Why deleteReply after reply?
       // interaction.deleteReply();
     } catch (error) {
-      // TODO: This error will always be because an invalid URL? NO!!!
-      await interaction.reply({
-        content: "URL invalido. Tente novamente!",
-        ephemeral: true,
-      });
+      if (error.code === "ERR_INVALID_URL") {
+        await interaction.reply({
+          content: "URL invalido. Tente novamente!",
+          ephemeral: true,
+        });
+      } else {
+        throw error;
+      }
     }
   }
 };

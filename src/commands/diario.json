@@ -18,7 +18,7 @@
       {
         "type": "string",
         "name": "descricao",
-        "description": "Coloque o conteúdo da noticia",
+        "description": "Coloque o conteudo da noticia",
         "required": true
       },
       {

@@ -41,7 +41,7 @@ import { keepAlive } from "./src/server.js";
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "There was an error while executing this command.",
+        content: "Ocorreu um erro ao executar este comando.",
         ephemeral: true,
       });
     }

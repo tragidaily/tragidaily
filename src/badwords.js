@@ -2,10 +2,8 @@
 // just "fudid" or /fudid\w/
 // TODO: Increase the number of words
 const badwords = [
-  "vai se fude",
-  "vai pro caralho",
+  "caralho",
   "caralhudo",
-  "va para o caralho",
   "porrinha",
   "baitola",
   "bicha",
@@ -13,7 +11,7 @@ const badwords = [
   "buceta",
   "bucetão",
   "cuzão",
-  "fuder",
+  "fude",
   "cacete",
   "pênis",
   "transar",
@@ -60,8 +58,7 @@ const badwords = [
   "demente",
   "cocozento",
   "vadia",
-  "vai a merda",
-  "va a merda",
+  "merda",
   "xavasca",
   "boiola",
   "gozada",

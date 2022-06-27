@@ -4,7 +4,7 @@ import { remove } from "confusables";
 
 import badwords from "../badwords.js";
 import { createSlashCommand } from "../builder.js";
-import { getChannel, getChannelId } from "../utils/discord.js";
+import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
 function createMessageEmbed() {
   let wordsNumber = Object.values(users[id]["badWords"]);
@@ -79,19 +79,24 @@ const command = {
 
     const users = await database.get("users");
 
-    if (!data[author.id]) {
-      data[author.id] = {
+    if (!users[author.id]) {
+      users[author.id] = {
         id: author.id,
         name: `${author.username}`,
         image: author.avatarURL(),
         badwords: {},
       };
-      await database.set("users", data);
+      await database.set("users", users);
     }
 
+
     for (word of badwords) {
-      let regex = new RegExp("\\b" + remove(word) + "\\b", "ig");
-      if (remove(content).match(regex)) {
+      const regex = new RegExp(`\\b${word}\\b`, "i");
+
+      // NOTE: Unobfuscated or ...?
+      const contentUnobfuscated = remove(content);
+
+      if (regex.test(contentUnobfuscated)) {
         const channel = getChannel("report");
 
         channel.send(
@@ -105,28 +110,25 @@ Link: ${message.url}
 `
           );
 
-        if (!user.badwords[word]) {
-          data["users"][user["id"]].badwords[word] = 1;
-        } else {
-          data["users"][user["id"]].badwords[word] += 1;
-        }
-        await database.set("usersData", data);
+        const user = users[author.id];
+        users[author.id].badwords[word] = user.badwords[word] ? 1 : user.badwords[word] + 1;
+
+        await database.set("users", users);
       }
     }
   },
 
   async execute(interaction) {
-    const action = await interaction;
-    const adm = interaction.member.roles.cache.get("864720804691050496");
-    const mod = interaction.member.roles.cache.get("959787387184107580");
-    let data = await database.get("usersData");
-    let users = data["users"];
-    const id = action.options.getString("id");
-    const bool = action.options.getBoolean("mostrar");
-    if (users[id]) {
+    const { options } = interaction;
+    const mostrar = options.getBoolean("mostrar");
+    const userId = options.getUser("id");
+    const administrador = getRole("administrador");
+    const moderador = getRole("moderador");
+    const users = await database.get("users");
+    if (users[userId]) {
+      const messageEmbed = createMessageEmbed();
 
-
-      action.reply({ embeds: [embed] });
+      action.reply({ embeds: [messageEmbed] });
     } else {
       action.reply({
         content: "Nenhum usuário com este ID.",

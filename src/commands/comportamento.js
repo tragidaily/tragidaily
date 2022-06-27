@@ -6,8 +6,9 @@ import badwords from "../badwords.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
-function createMessageEmbed() {
+function createMessageEmbed(users) {
   let wordsNumber = Object.values(users[id]["badWords"]);
+
   if (wordsNumber[0]) {
     wordsNumber = wordsNumber.reduce((i, j) => {
       return i + j;
@@ -15,7 +16,9 @@ function createMessageEmbed() {
   } else {
     wordsNumber = 0;
   }
+
   let color;
+
   const embed = new MessageEmbed()
     .setThumbnail(users[id].img)
     .setAuthor(users[id].name)
@@ -35,7 +38,9 @@ function createMessageEmbed() {
             return "Você parecer ter um comportamento um pouco excessivo... Caso haja denúncias, o seu histórico poderá influenciar na sua punição.";
           })()
     );
+
   embed.setColor(color);
+
   if ((bool && adm) || (bool && mod)) {
     let list = Object.entries(users[id].badWords),
       words = "";
@@ -120,11 +125,11 @@ Link: ${message.url}
 
   async execute(interaction) {
     const { options } = interaction;
-    const mostrar = options.getBoolean("mostrar");
-    const userId = options.getUser("id");
     const administrador = getRole("administrador");
     const moderador = getRole("moderador");
     const users = await database.get("users");
+    const userId = options.getUser("id");
+    const mostrar = options.getBoolean("mostrar");
 
     if (users[userId]) {
       const messageEmbed = createMessageEmbed();

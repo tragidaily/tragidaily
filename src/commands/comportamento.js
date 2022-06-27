@@ -14,9 +14,10 @@ function sumArray(array) {
 
 function createMessageEmbed(users, author) {
   // TODO: Filtrar por somente badwords que ocorreram dentro de um mês
-  const badwords = users[id].badwords;
-  const badwordsValues = Object.values(badwordsValues);
-  const badwordsTotal = sumArray(badwords);
+  const { name, image, badwords } = users[author.id];
+  const badwordsEntries = Object.keys(badwords);
+  const badwordsValues = Object.values(badwords);
+  const badwordsTotal = sumArray(badwordsValues);
 
   let description;
   let color;
@@ -33,22 +34,22 @@ function createMessageEmbed(users, author) {
   }
 
   const messageEmbed = new MessageEmbed()
-    .setThumbnail(users[id].image)
-    .setAuthor(users[id].name)
-    .setDescription(description);
+    .setAuthor(name)
+    .setThumbnail(image)
+    .setDescription(description)
+    .setColor(color);
 
-  messageEmbed.setColor(color);
+  if ((bool && administrador) || (bool && moderador)) {
+    let words = "";
 
-  if ((bool && adm) || (bool && mod)) {
-    let list = Object.entries(users[id].badwords), words = "";
-
-    if (list[0]) {
-      for (item of list) {
-        words += item[0] + ": " + item[1] + "\n";
+    if (badwordsEntries.length > 0) {
+      for (const [key, value] of badwordsEntries) {
+        words += key + ": " + value + "\n";
       }
     } else {
       words = "No words!";
     }
+
     messageEmbed.addFields({
       name: "Lista de Palavras:",
       value: words,

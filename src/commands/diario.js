@@ -1,10 +1,9 @@
 import { MessageEmbed } from "discord.js";
 
 import colors from "../colors.js";
-import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
 import { checkURL, hasURL } from "../utils/url.js";
-import { getRole, getChannel } from "../utils/discord.js";
+import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
 function createMessageEmbedFooter(user) {
   const { options, username } = user;
@@ -54,12 +53,13 @@ const command = {
   data: createSlashCommand("./diario.json"),
 
   async receive(message) {
-    const { militadas, artes } = config.discord.channels;
     const { channelId, attachments, content } = message;
 
     if (
-      (channelId === militadas.id || channelId === artes.id) &&
-      (attachments.size === 0 && !hasURL(content))
+      (channelId === getChannelId("militadas") ||
+       channelId === getChannelId("artes")) &&
+      (attachments.size === 0 ||
+        hasURL(content) === false)
     ) {
       const oneSecond = 1000;
 

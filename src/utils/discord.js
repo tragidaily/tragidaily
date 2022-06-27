@@ -12,4 +12,10 @@ function getChannel(client, channelName) {
   return client.channels.cache.get(channels[channelName].id);
 }
 
-export { getRole, getChannel };
+function getChannelId(channelName) {
+  const { channels } = config.discord;
+
+  return channels[channelName].id;
+}
+
+export { getRole, getChannel, getChannelId };

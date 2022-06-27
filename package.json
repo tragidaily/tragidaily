@@ -13,15 +13,20 @@
   },
   "license": "MIT",
   "author": "Virgulas <bruno.a.wep@gmail.com>",
+  "contributors": [
+    {
+      "name": "Cahian Freire",
+      "email": "cahianfreire@gmail.com"
+    }
+  ],
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "",
-    "lint": "",
-    "lint:fix": "",
-    "format": "",
-    "format:fix": ""
+    "deploy": "node deploy.js",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "@discordjs/builders": "^0.13.0",

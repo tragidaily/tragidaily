@@ -11,6 +11,8 @@ import { readCommandsJSONs } from "./src/handler.js";
     const commands = await readCommandsJSONs();
 
     console.log("Started refreshing application (/) commands.");
+
+    // eslint-disable-next-line unicorn/prefer-ternary
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
         body: commands,
@@ -20,6 +22,7 @@ import { readCommandsJSONs } from "./src/handler.js";
         body: commands,
       })
     }
+
     console.log("Successfully reloaded application (/) commands.");
   } catch (error) {
     console.error(error);

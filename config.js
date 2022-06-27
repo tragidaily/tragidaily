@@ -2,7 +2,8 @@
 const { TOKEN, GUILD_ID, CLIENT_ID, REPLIT_DB_URL } = process.env;
 
 const config = {
-  discord: { token: TOKEN,
+  discord: {
+    token: TOKEN,
     guildId: GUILD_ID,
     clientId: CLIENT_ID,
 
@@ -46,8 +47,8 @@ const config = {
       },
 
       jornalistaInvestigativo: {
-        id: "968688946043310150"
-      }
+        id: "968688946043310150",
+      },
     },
   },
 

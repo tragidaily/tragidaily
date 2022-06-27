@@ -1,8 +1,20 @@
 import { MessageEmbed } from "discord.js";
 
-import { createSlashCommand } from "../builder.js";
-import { checkURL, hasURL } from "../urlutils.js";
 import config from "../../config.js";
+import colors from "../colors.js";
+import { checkURL, hasURL } from "../urlutils.js";
+import { createSlashCommand } from "../builder.js";
+
+function createMessageEmbedFooter(user) {
+  const autor = options.get("autor");
+  const footerPublicador = `Publicado por: ${user.username}`
+  const footerAutor = autor ? ` - Autor: ${autor}` : "";
+
+  return {
+    text: `${footerPublicador}${footerAutor}`,
+    iconURL: user.avatarURL(),
+  };
+}
 
 function createMessageEmbed(user) {
   const { options } = user;
@@ -10,25 +22,13 @@ function createMessageEmbed(user) {
   checkURL(options.getString("fonte"));
   checkURL(options.getString("imagem"));
 
-  const colors = {
-    undefined: "#b80000",
-    vermelho: "#ed0000",
-    laranja: "#ff8000",
-    amarelo: "#fff200",
-    verde: "#48ff00",
-    azul: "#005eff",
-    roxo: "#a600ed",
-    rosa: "#ff00f7",
-    branco: "#ffffff",
-    preto: "#000000",
-  };
-
   const messageEmbed = new MessageEmbed()
     .setURL(options.getString("fonte"))
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
     .setColor(colors[options.getString("cor")])
+    .setFooter(createMessageEmbedFooter())
     .setThumbnail("./images/tragidaily.png")
     .setTimestamp();
 
@@ -42,15 +42,6 @@ function createMessageEmbed(user) {
     });
   }
 
-  const autor = options.get("autor");
-  const footerPublicador = `Publicado por: ${user.username}`
-  const footerAutor = autor ? ` - Autor: ${autor}` : "";
-
-  messageEmbed.setFooter({
-    text: `${footerPublicador}${footerAutor}`,
-    iconURL: user.avatarURL(),
-  })
-
   return messageEmbed;
 }
 
@@ -63,11 +54,11 @@ const command = {
 
     if (
       (channelId === militadas.id || channelId === artes.id) &&
-      (attachments.size === 0 && !includesURL(content))
+      (attachments.size === 0 && !hasURL(content))
     ) {
       await setTimeout(() => message.delete(), 1000);
     }
-  }
+  },
 
   async execute(interaction) {
     const { channels, roles } = config.discord;

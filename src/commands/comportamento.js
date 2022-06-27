@@ -5,14 +5,14 @@ import { remove } from "confusables";
 
 import badwords from "../badwords.js";
 import config from "../../config.js";
-import { createSlashCommand }
+import { createSlashCommand } from "../builder.js";
 
 const database = new Database(config.replit.databaseUrl);
 
 const command = {
-  data: createSlashCommand("./comportamento.json");
+  data: createSlashCommand("./comportamento.json"),
 
-  async function receive(message) {
+  async receive(message) {
     if (message.author.bot) {
       return;
     }
@@ -57,9 +57,9 @@ const command = {
         }
       }
     }
-  }
+  },
 
-  async function execute(interaction) {
+  async execute(interaction) {
     const action = await interaction;
     const adm = interaction.member.roles.cache.get("864720804691050496");
     const mod = interaction.member.roles.cache.get("959787387184107580");

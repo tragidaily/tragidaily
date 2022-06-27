@@ -6,7 +6,7 @@ import { keepAlive } from "./src/server.js";
 
 (async () => {
   const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
   });
 
   client.commands = await readCommandsModules();
@@ -18,7 +18,7 @@ import { keepAlive } from "./src/server.js";
   client.on("messageCreate", async (message) => {
     try {
       for (const command of client.commands) {
-        command.receive(message);
+        await command.receive(message);
       }
     } catch (error) {
       console.error(error);

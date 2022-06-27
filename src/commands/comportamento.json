@@ -1,7 +1,7 @@
 {
   "slashCommand": {
     "name": "comportamento",
-    "description": "Verifique o comportamento de um usuario!"
+    "description": "Verifique o comportamento de um usuario!",
     "options": [
       {
         "type": "user",

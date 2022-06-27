@@ -51,7 +51,7 @@ async function getCommandsJSONs() {
 
   const commandsJSONs = new Collection();
 
-  for (const [key, value] of Object.entries(commandsModules)) {
+  for (const [key, value] of commandsModules.entries()) {
     commandsJSONs.set(key, value.data.toJSON());
   }
 

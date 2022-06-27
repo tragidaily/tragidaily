@@ -6,44 +6,42 @@ import badwords from "../badwords.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
-function createMessageEmbed(users) {
-  let wordsNumber = Object.values(users[id]["badWords"]);
+// TODO: Put this function in ../utils/array.js
+function sumArray(array) {
+  const sum = (previousValue, currentValue) => previousValue + currentValue;
+  return array.reduce(sum);
+}
 
-  if (wordsNumber[0]) {
-    wordsNumber = wordsNumber.reduce((i, j) => {
-      return i + j;
-    }, 0);
-  } else {
-    wordsNumber = 0;
-  }
+function createMessageEmbed(users, author) {
+  // TODO: Filtrar por somente badwords que ocorreram dentro de um mês
+  const badwords = users[id].badwords;
+  const badwordsValues = Object.values(badwordsValues);
+  const badwordsTotal = sumArray(badwords);
 
+  let description;
   let color;
 
-  const embed = new MessageEmbed()
-    .setThumbnail(users[id].img)
-    .setAuthor(users[id].name)
-    .setDescription(
-      wordsNumber < 10
-        ? (() => {
-            color = "#ffffff";
-            return "Usuário comportado. Parabéns! :) \n O número de palavras ofensivas ditas é: **Abaixo de 10!**";
-          })()
-        : wordsNumber < 50
-        ? (() => {
-            color = "#facc41";
-            return "Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!";
-          })()
-        : (() => {
-            color = "#f00000";
-            return "Você parecer ter um comportamento um pouco excessivo... Caso haja denúncias, o seu histórico poderá influenciar na sua punição.";
-          })()
-    );
+  if (badwordsTotal < 10) {
+    color = "#ffffff";
+    description = "Usuário comportado. Parabéns! :) \n O número de palavras ofensivas ditas é: **Abaixo de 10!**";
+  } else if (badwordsTotal < 50) {
+    color = "#facc41";
+    description = "Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!";
+  } else {
+    color = "#f00000";
+    description = "Você parecer ter um comportamento um pouco excessivo... Caso haja denúncias, o seu histórico poderá influenciar na sua punição.";
+  }
 
-  embed.setColor(color);
+  const messageEmbed = new MessageEmbed()
+    .setThumbnail(users[id].image)
+    .setAuthor(users[id].name)
+    .setDescription(description);
+
+  messageEmbed.setColor(color);
 
   if ((bool && adm) || (bool && mod)) {
-    let list = Object.entries(users[id].badWords),
-      words = "";
+    let list = Object.entries(users[id].badwords), words = "";
+
     if (list[0]) {
       for (item of list) {
         words += item[0] + ": " + item[1] + "\n";
@@ -51,7 +49,7 @@ function createMessageEmbed(users) {
     } else {
       words = "No words!";
     }
-    embed.addFields({
+    messageEmbed.addFields({
       name: "Lista de Palavras:",
       value: words,
     });

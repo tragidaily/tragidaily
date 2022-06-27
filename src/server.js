@@ -7,9 +7,12 @@ app.all("/", (req, res) => {
 });
 
 function keepAlive() {
-  return app.listen(3000, () => {
+  const port = 3000;
+
+  return app.listen(port, () => {
     console.log("Server is running!");
   });
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export { keepAlive };

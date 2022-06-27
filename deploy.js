@@ -2,13 +2,13 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 
 import config from "./config.js";
-import { readCommandsJSONs } from "./src/handler.js";
+import { getCommandsJSONs } from "./src/handler.js";
 
 (async () => {
   try {
     const { token, clientId, guildId } = config.discord;
     const rest = new REST({ version: "9" }).setToken(token);
-    const commands = await readCommandsJSONs();
+    const commands = await getCommandsJSONs();
 
     console.log("Started refreshing application (/) commands.");
 
@@ -16,11 +16,11 @@ import { readCommandsJSONs } from "./src/handler.js";
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
         body: commands,
-      })
+      });
     } else {
       await rest.put(Routes.applicationCommands(clientId), {
         body: commands,
-      })
+      });
     }
 
     console.log("Successfully reloaded application (/) commands.");

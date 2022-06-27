@@ -1,7 +1,7 @@
 import { Client, Intents } from "discord.js";
 
 import config from "./config.js";
-import { readCommandsModules } from "./src/handler.js";
+import { getCommandsModules } from "./src/handler.js";
 import { keepAlive } from "./src/server.js";
 
 (async () => {
@@ -9,7 +9,7 @@ import { keepAlive } from "./src/server.js";
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
   });
 
-  client.commands = await readCommandsModules();
+  client.commands = await getCommandsModules();
 
   client.once("ready", () => {
     console.log("Bot is ready!");
@@ -17,9 +17,13 @@ import { keepAlive } from "./src/server.js";
 
   client.on("messageCreate", async (message) => {
     try {
+      const promises = [];
+
       for (const command of client.commands) {
-        await command.receive(message);
+        promises.push(command.receive(message));
       }
+
+      await Promise.all(promises);
     } catch (error) {
       console.error(error);
     }

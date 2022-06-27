@@ -1,13 +1,16 @@
 import { MessageEmbed } from "discord.js";
 
-import config from "../../config.js";
 import colors from "../colors.js";
-import { checkURL, hasURL } from "../urlutils.js";
+import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
+import { checkURL, hasURL } from "../utils/url.js";
+import { getRole, getChannel } from "../utils/discord.js";
 
 function createMessageEmbedFooter(user) {
+  const { options, username } = user;
+
   const autor = options.get("autor");
-  const footerPublicador = `Publicado por: ${user.username}`
+  const footerPublicador = `Publicado por: ${username}`;
   const footerAutor = autor ? ` - Autor: ${autor}` : "";
 
   return {
@@ -28,7 +31,7 @@ function createMessageEmbed(user) {
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
     .setColor(colors[options.getString("cor")])
-    .setFooter(createMessageEmbedFooter())
+    .setFooter(createMessageEmbedFooter(user))
     .setThumbnail("./images/tragidaily.png")
     .setTimestamp();
 
@@ -38,7 +41,9 @@ function createMessageEmbed(user) {
   if (subtitulo) {
     messageEmbed.addFields({
       name: subtitulo,
-      value: subdescricao || "-",  // NOTE: Deveria ser um traço?
+
+      // NOTE: Deveria ser um "-"?
+      value: subdescricao || "-",
     });
   }
 
@@ -56,28 +61,29 @@ const command = {
       (channelId === militadas.id || channelId === artes.id) &&
       (attachments.size === 0 && !hasURL(content))
     ) {
-      await setTimeout(() => message.delete(), 1000);
+      const oneSecond = 1000;
+
+      await setTimeout(() => message.delete(), oneSecond);
     }
   },
 
   async execute(interaction) {
-    const { channels, roles } = config.discord;
-    const { client, member, user } = interaction;
+    const { member, client, user } = interaction;
 
-    const roleId = roles.jornalistaInvestigativo.id;
-    const role = member.roles.cache.get(roleId);
-    const channelId = role ? channels.diario.id : channels.journal.id;
-    const channel = client.channels.cache.get(channelId);
+    const role = getRole(member, "jornalistaInvestigativo");
+    const channel = getChannel(client, role ? "diario" : "jornal");
 
     try {
       const messageEmbed = createMessageEmbed(user);
 
       channel.send({ embeds: [messageEmbed] });
 
+      // NOTE: ephemeral = true or false?
       await interaction.reply({
         content: "Sua noticia foi publicada!",
-        ephemeral: false, // NOTE: true or false?
+        ephemeral: false,
       });
+
       // NOTE: Why deleteReply after reply?
       // interaction.deleteReply();
     } catch (error) {
@@ -90,7 +96,7 @@ const command = {
         throw error;
       }
     }
-  }
+  },
 };
 
 export default command;

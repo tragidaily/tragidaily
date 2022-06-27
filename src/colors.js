@@ -8,7 +8,7 @@ const colors = {
   roxo: "#a600ed",
   rosa: "#ff00f7",
   branco: "#ffffff",
-  preto: "#000000"
-}
+  preto: "#000000",
+};
 
 export default colors;

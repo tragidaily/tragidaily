@@ -37,25 +37,25 @@ async function getCommandsFilenames() {
 async function getCommandsModules() {
   const commandsFilenames = getCommandsFilenames();
 
-  const commands = new Collection();
+  const commandsModules = new Collection();
 
   for (const command of await importModules(commandsFilenames)) {
-    commands.set(command.data.name, command);
+    commandsModules.set(command.data.name, command);
   }
 
-  return commands;
+  return commandsModules;
 }
 
 async function getCommandsJSONs() {
-  const commands = await getCommandsModules();
+  const commandsModules = await getCommandsModules();
 
-  const commandJSONs = [];
+  const commandsJSONs = new Collection();
 
-  for (const value of commands.values()) {
-    commandJSONs.push(value.data.toJSON());
+  for (const [key, value] of Object.entries(commandsModules)) {
+    commandsJSONs.set(key, value.data.toJSON());
   }
 
-  return commandJSONs;
+  return commandsJSONs;
 }
 
 export { getCommandsModules, getCommandsJSONs };

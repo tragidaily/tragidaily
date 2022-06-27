@@ -9,17 +9,18 @@ import { getCommandsJSONs } from "./src/handler.js";
     const { token, clientId, guildId } = config.discord;
     const rest = new REST({ version: "9" }).setToken(token);
     const commands = await getCommandsJSONs();
+    const body = Array.from(commands.values());
 
     console.log("Started refreshing application (/) commands.");
 
     // eslint-disable-next-line unicorn/prefer-ternary
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-        body: commands,
+        body,
       });
     } else {
       await rest.put(Routes.applicationCommands(clientId), {
-        body: commands,
+        body,
       });
     }
 

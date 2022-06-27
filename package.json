@@ -12,12 +12,9 @@
     "url": "git+https://github.com/tragidaily/tragidaily.git"
   },
   "license": "MIT",
-  "author": "Virgulas <bruno.a.wep@gmail.com>",
   "contributors": [
-    {
-      "name": "Cahian Freire",
-      "email": "cahianfreire@gmail.com"
-    }
+    "Virgulas <bruno.a.wep@gmail.com>",
+    "Cahian Freire <cahianfreire@gmail.com>"
   ],
   "type": "module",
   "main": "index.js",

@@ -125,13 +125,15 @@ Link: ${message.url}
     const administrador = getRole("administrador");
     const moderador = getRole("moderador");
     const users = await database.get("users");
+
     if (users[userId]) {
       const messageEmbed = createMessageEmbed();
 
       action.reply({ embeds: [messageEmbed] });
     } else {
       action.reply({
-        content: "Nenhum usuário com este ID.",
+        // NOTE: Essa mensagem nao faz sentido
+        content: "Nenhum usuario com este ID!",
         ephemeral: true,
       });
     }

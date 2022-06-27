@@ -99,29 +99,25 @@ client.on("ready", async () => {
   console.log("on");
 });
 
-client.on("messageCreate", async (msg) => {
-  if (msg.author.bot) return;
-  if (
-    msg.channelId == "961176960086720532" ||
-    msg.channelId == "864730261588803605"
-  ) {
-    let rg =
-      /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/;
-    if (!msg.attachments.firstKey() && !msg.content.match(rg)) {
-      setTimeout(() => msg.delete(), 1000);
-    }
-  }
+client.on('messageCreate', async msg => {
+  if(msg.author.bot) return;
+	if(msg.channelId == '961176960086720532'||msg.channelId == "864730261588803605") { 
+		let rg = /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/;
+		if(!msg.attachments.firstKey()&&!msg.content.match(rg)){
+			setTimeout(() => msg.delete(), 1000);
+		}
+	}
 
-  if (
-    msg.channelId == "961172391529160734" ||
-    msg.channelId == "961176833343246348"
-  )
-    return;
-  let data = await db.get("usersData");
-  let user = data["users"][msg.author.id];
+  const adm = msg.member.roles.cache.get("864720804691050496");
+  const mod = msg.member.roles.cache.get("959787387184107580");
+  const assist = msg.member.roles.cache.get("981274684458958878");
 
+if(msg.channelId == '961172391529160734'||msg.channelId == '961176833343246348') return;
+let data = await db.get("usersData");
+let user = data['users'][msg.author.id];
+  
   if (!user) {
-    data["users"][msg.author.id] = {
+    data['users'][msg.author.id] = {
       id: msg.author.id,
       name: `${msg.author.username}`,
       img: msg.author.avatarURL(),
@@ -129,8 +125,20 @@ client.on("messageCreate", async (msg) => {
     };
     await db.set("usersData", data);
     data = await db.get("usersData");
-    user = data["users"][msg.author.id];
+    user = data['users'][msg.author.id];
   }
+  else {
+    data['users'][msg.author.id] = {
+      id: msg.author.id,
+      name: `${msg.author.username}`,
+      img: msg.author.avatarURL(),
+      badWords: user['badWords'],
+    };
+    await db.set("usersData", data);
+    data = await db.get("usersData");
+    user = data['users'][msg.author.id];
+  }
+  if(adm||mod||assist) return;
   let check = msg.content;
   for (word of badWords) {
     let rgx = new RegExp("\\b" + remove(word) + "\\b", "ig");
@@ -142,15 +150,15 @@ client.on("messageCreate", async (msg) => {
           `Atenção! Um usuário disse uma palavra proibida: \n Nome: ${msg.author.username} \n Id: ${msg.author.id} \n Mensagem: ${msg.content} \n Link: ${msg.url}`
         );
       if (!user.badWords[word]) {
-        data["users"][user["id"]].badWords[word] = 1;
+        data['users'][user['id']].badWords[word] = 1;
         await db.set("usersData", data);
       } else {
-        data["users"][user["id"]].badWords[word]++;
+        data['users'][user['id']].badWords[word]++;
         await db.set("usersData", data);
       }
     }
   }
-});
+  });
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;

@@ -11,7 +11,7 @@ import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 // after every set.
 // TODO: Create a class called CachedDatabase
 class UserBadwords {
-  static database// = 14 // new Database(config.replit.databaseUrl);
+  static database = new Database(config.replit.databaseUrl);
 
   constructor(user) {
     this.user = user;
@@ -35,12 +35,6 @@ class UserBadwords {
     await UserBadwords.database.set("users", data);
   }
 
-  async sum() {
-    const data = await this.get();
-    const values = Object.values(data);
-
-    return values.reduce((a, b) => a + b);
-  }
 
   async toString() {
     const data = await this.get();
@@ -54,43 +48,70 @@ class UserBadwords {
 
     return string;
   }
+
+  async getTotal() {
+    const data = await this.get();
+    const values = Object.values(data);
+
+    let total = 0;
+
+    for (const value of values) {
+      total += value;
+    }
+
+    return total;
+  }
+
+  async getDescription() {
+    const total = await this.getTotal();
+
+    if (total < 10) {
+      return `Usuário comportado. Parabéns! :)
+O número de palavras ofensivas ditas é: **Abaixo de 10!**`;
+    } else if (total < 50) {
+      return `Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!
+O número de palavras ofensivas ditas é: **Abaixo de 50!**`;
+    } else {
+      return `Você parecer ter um comportamento um pouco excessivo...
+Caso haja denúncias, o seu histórico poderá influenciar na sua punição.
+O número de palavras ofensivas ditas é: **Acima de 50!**`;
+    }
+  }
+
+  async getColor() {
+    const total = await this.getTotal();
+    const { colors } = config.discord;
+
+    if (total < 10) {
+      return colors.branco;
+    } else if (total < 50) {
+      return colors.amarelo;
+    } else {
+      return colors.vermelho;
+    }
+  }
 }
 
 function createMessageEmbed(member, options, databaseUser, mostrar) {
-  const { colors } = config.discord;
   const usuario = options.getUser("usuario");
   const mostrar = options.getBoolean("mostrar");
 
   usuario.badwords = new UserBadwords(usuario);
 
-  const userBadwordsTotal = getUserBadwordsTotal(user.badwords);
-
-  let description;
-  let color;
-
-  if (userBadwordsTotal < 10) {
-    color = colors["branco"];
-    description = "Usuário comportado. Parabéns! :) \n O número de palavras ofensivas ditas é: **Abaixo de 10!**";
-  } else if (userBadwordsTotal < 50) {
-    color = colors["amarelo"];
-    description = "Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!";
-  } else {
-    color = colors["vermelho"];
-    description = "Você parecer ter um comportamento um pouco excessivo... Caso haja denúncias, o seu histórico poderá influenciar na sua punição.";
-  }
+  const badwordsTotal = usuario.badwords.sum();
 
   const messageEmbed = new MessageEmbed()
     .setAuthor(usuario.username)
     .setThumbnail(usuario.avatar)
-    .setDescription(description)
-    .setColor(color);
+    .setDescription(usuario.badwords.getDescription())
+    .setColor(usuario.badwords.getColor());
 
   if (mostrar) {
     const administrador = getRole(member, "administrador");
     const moderador = getRole(member, "moderador");
 
     if (administrador || moderador) {
-      const userBadwordsString = getUserBadwordsString(user.badwords);
+      const userBadwordsString = user.badwords.toString();
 
       messageEmbed.addFields({
         name: "Lista de Palavras:",

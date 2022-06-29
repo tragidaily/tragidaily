@@ -4,7 +4,7 @@ import * as confusables from "confusables";
 
 import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
-import { getRole, getChannel, getChannelId } from "../utils/discord.js";
+import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
 // TODO: Reduce database requests through cache
 // TODO: This code need to be optimized, the entire database is update

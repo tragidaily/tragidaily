@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 import { Collection } from "discord.js";
 
-import { getCurrentModuleDirname } from "./utils/module.js";
+import { getCurrentModuleDirname } from "./utilities/module.js";
 
 function importModules(modulesNames) {
   const modules = [];

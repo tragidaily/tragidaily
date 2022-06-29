@@ -1,8 +1,8 @@
 import { Client, Intents } from "discord.js";
 
 import config from "./config.js";
-import { getCommandsModules } from "./src/handler.js";
-import { keepAlive } from "./src/server.js";
+import { getCommandsModules } from "./source/handler.js";
+import { keepAlive } from "./source/server.js";
 
 (async () => {
   const client = new Client({

@@ -2,8 +2,8 @@ import { MessageEmbed } from "discord.js";
 
 import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
-import { checkURL, hasURL } from "../utils/url.js";
-import { getRole, getChannel, getChannelId } from "../utils/discord.js";
+import { checkURL, hasURL } from "../utilities/url.js";
+import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
 function createMessageEmbedFooter(user) {
   const { options, username } = user;

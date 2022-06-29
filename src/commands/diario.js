@@ -18,9 +18,8 @@ function createMessageEmbedFooter(user) {
   };
 }
 
-function createMessageEmbed(user) {
+function createMessageEmbed(options, user) {
   const { colors } = config.discord;
-  const { options } = user;
 
   checkURL(options.getString("fonte"));
   checkURL(options.getString("imagem"));
@@ -32,7 +31,7 @@ function createMessageEmbed(user) {
     .setImage(options.getString("imagem"))
     .setColor(colors[options.getString("cor")] || colors["vermelho"])
     .setFooter(createMessageEmbedFooter(user))
-    .setThumbnail("./images/tragidaily.png")
+    .setThumbnail("../images/tragidaily.png") // TODO: ../images or ../../public/images/ ??
     .setTimestamp();
 
   const subtitulo = options.getString("subtitulo");
@@ -69,13 +68,13 @@ const command = {
   },
 
   async execute(interaction) {
-    const { member, client, user } = interaction;
+    const { member, client, options, user } = interaction;
 
     const role = getRole(member, "jornalistaInvestigativo");
     const channel = getChannel(client, role ? "diario" : "jornal");
 
     try {
-      const messageEmbed = createMessageEmbed(user);
+      const messageEmbed = createMessageEmbed(options, user);
 
       channel.send({ embeds: [messageEmbed] });
 

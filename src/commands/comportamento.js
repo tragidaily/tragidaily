@@ -6,46 +6,81 @@ import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
-function getUserBadwordsTotal(userBadwords) {
-  let badwordsTotal = 0;
+// TODO: Reduce database requests through cache
+// TODO: This code need to be optimized, the entire database is update
+// after every set.
+class UserBadwords {
+  static database = new Database(config.replit.databaseUrl);
 
-  for (const badwordValue of Object.values(badwords)) {
-    badwordsTotal += badwordValue;
+  constructor(user) {
+    this.user = user;
   }
 
-  return badwordsTotal;
-}
+  async get() {
+    const databaseUsers = await UserBadwords.database.get("users");
 
-function getUserBadwordsString(userBadwords) {
-  let badwordsString = "";
-
-  for (const [key, value] of Object.entries(badwords)) {
-    words += key + ": " + value + "\n";
+    return databaseUsers[this.user.id].badwords;
   }
 
-  return badwordsString;
+  async set(badwords) {
+    const data = await this.get();
+    data[this.user.id].badwords = badwords;
+    await UserBadwords.database.set("users", data);
+  }
+
+  async push(badword) {
+    const data = await this.get();
+    data[this.user.id].badwords.push(badword);
+    await UserBadwords.database.set("users", data);
+  }
+
+  async sum() {
+    const data = await this.get();
+    const values = Object.values(data);
+
+    return values.reduce((a, b) => a + b);
+  }
+
+  async toString() {
+    const data = await this.get();
+    const entries = Object.entries(data);
+
+    let string = "";
+
+    for (const [key, value] of entries) {
+      string += `${key}: ${value}\n`;
+    }
+
+    return string;
+  }
 }
 
-function createMessageEmbed(user, mostrar) {
+function createMessageEmbed(member, options, databaseUser, mostrar) {
+  const { colors } = config.discord;
+  const usuario = options.getUser("usuario");
+  const mostrar = options.getBoolean("mostrar");
+
+  usuario.badwords = new UserBadwords(usuario);
+
   const userBadwordsTotal = getUserBadwordsTotal(user.badwords);
 
   let description;
   let color;
 
   if (userBadwordsTotal < 10) {
-    color = "#ffffff";
+    color = colors["branco"];
     description = "Usuário comportado. Parabéns! :) \n O número de palavras ofensivas ditas é: **Abaixo de 10!**";
   } else if (userBadwordsTotal < 50) {
-    color = "#facc41";
+    color = colors["amarelo"];
     description = "Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!";
   } else {
-    color = "#f00000";
+    color = colors["vermelho"];
     description = "Você parecer ter um comportamento um pouco excessivo... Caso haja denúncias, o seu histórico poderá influenciar na sua punição.";
   }
 
   const messageEmbed = new MessageEmbed()
-    .setAuthor(user.name)
-    .setThumbnail(user.image)
+    .setAuthor(usuario.username)
+    .setThumbnail(usuario.avatar)
     .setDescription(description)
     .setColor(color);
 
@@ -80,7 +115,6 @@ const command = {
     // { ... }.
 
     const configBadwords = config.discord.badwords;
-    const { submundoChat, submundoHumorNegro } = config.discord.channels;
     const { channelId, author, content, client } = message;
 
     if (
@@ -94,18 +128,15 @@ const command = {
       return;
     }
 
-    const users = await database.get("users");
+    const databaseUsers = await database.get("users");
 
     if (!users[author.id]) {
       users[author.id] = {
         id: author.id,
-        name: `${author.username}`,
-        image: author.avatarURL(),
         badwords: {},
       };
       await database.set("users", users);
     }
-
 
     for (const configBadword of configBadwords) {
       const contentFiltered = confusables.remove(content);
@@ -116,8 +147,7 @@ const command = {
         const channel = getChannel(client, "report");
 
         channel.send(
-            `
-Atenção! Um usuário disse uma palavra proibida:
+            `Atenção! Um usuário disse uma palavra proibida:
 
 Nome: ${author.username}
 Id: ${author.id}
@@ -136,21 +166,20 @@ Link: ${message.url}
 
   async execute(interaction) {
     const { member, options } = interaction;
-    const users = await database.get("users");
-    const userId = options.getUser("id");
-    const user = users[userId];
-    const mostrar = options.getBoolean("mostrar");
 
-    if (user) {
-      const messageEmbed = createMessageEmbed(member, target, mostrar);
+    try {
+      const messageEmbed = createMessageEmbed(member, options);
 
       action.reply({ embeds: [messageEmbed] });
-    } else {
-      action.reply({
-        // NOTE: Essa mensagem nao faz sentido
-        content: "Nenhum usuário com este ID!",
-        ephemeral: true,
-      });
+    } catch (error) {
+      if (error.code === "") {
+        action.reply({
+          content: "Usuario alvo não identificado!",
+          ephemeral: true,
+        });
+      } else {
+        throw error;
+      }
     }
   },
 };

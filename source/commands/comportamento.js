@@ -1,9 +1,10 @@
 import { MessageEmbed } from "discord.js";
 
+import UserBadwords from "../structures/UserBadwords.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createMessageEmbed(member, options, databaseUser, mostrar) {
+function createMessageEmbed(member, options) {
   const usuario = options.getUser("usuario");
   const mostrar = options.getBoolean("mostrar");
 
@@ -64,6 +65,7 @@ const command = {
       author.badwords.incrementCounter(messageBadword)
       const channel = getChannel(client, "report");
 
+      // TODO: Use a messageEmbed here! Please!
       channel.send(
         `Atenção! Um usuário disse uma palavra proibida:
 
@@ -78,20 +80,9 @@ Link: ${message.url}`
   async execute(interaction) {
     const { member, options } = interaction;
 
-    try {
-      const messageEmbed = createMessageEmbed(member, options);
+    const messageEmbed = createMessageEmbed(member, options);
 
-      action.reply({ embeds: [messageEmbed] });
-    } catch (error) {
-      if (error.code === "") {
-        action.reply({
-          content: "Usuario alvo não identificado!",
-          ephemeral: true,
-        });
-      } else {
-        throw error;
-      }
-    }
+    action.reply({ embeds: [messageEmbed] });
   },
 };
 

@@ -1,6 +1,7 @@
 import Database from "@replit/database";
 import * as confusables from "confusables";
 
+import UserBadwords from "../structures/UserBadwords.js";
 import config from "../../config.js";
 
 // TODO: Reduce database requests through cache
@@ -14,6 +15,7 @@ class UserBadwords {
     const { content } = message;
     const configBadwords = config.discord.badwords;
 
+    // TODO: Use better names!
     let messageBadwords = []
 
     for (const configBadword of configBadwords) {

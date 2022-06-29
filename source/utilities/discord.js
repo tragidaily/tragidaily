@@ -1,21 +1,21 @@
 import config from "../../config.js";
 
-function getRole(member, roleName) {
+function getRoleByName(member, roleName) {
   const { roles } = config.discord;
 
   return member.roles.cache.get(roles[roleName].id);
 }
 
-function getChannel(client, channelName) {
+function getChannelByName(client, channelName) {
   const { channels } = config.discord;
 
   return client.channels.cache.get(channels[channelName].id);
 }
 
-function getChannelId(channelName) {
+function getChannelIdByName(channelName) {
   const { channels } = config.discord;
 
   return channels[channelName].id;
 }
 
-export { getRole, getChannel, getChannelId };
+export { getRoleByName, getChannelByName, getChannelIdByName };

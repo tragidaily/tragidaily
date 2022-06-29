@@ -13,6 +13,15 @@ import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 class UserBadwords {
   static database = new Database(config.replit.databaseUrl);
 
+  static hasMessageBadword(message) {
+    const { content } = message;
+    const contentFiltered = confusables.remove(content);
+    const configBadwordFiltered = confusables.remove(configBadword);
+    const regex = new RegExp(`\\b${configBadwordFiltered}\\b`, "i");
+
+    return regex.test(contentFiltered);
+  }
+
   constructor(user) {
     this.user = user;
   }
@@ -25,16 +34,14 @@ class UserBadwords {
 
   async set(badwords) {
     const data = await this.get();
+
+    if (!data[this.user.id]) {
+      data[this.user.id] = { badwords: {} };
+    }
+
     data[this.user.id].badwords = badwords;
     await UserBadwords.database.set("users", data);
   }
-
-  async push(badword) {
-    const data = await this.get();
-    data[this.user.id].badwords.push(badword);
-    await UserBadwords.database.set("users", data);
-  }
-
 
   async toString() {
     const data = await this.get();
@@ -90,6 +97,12 @@ O número de palavras ofensivas ditas é: **Acima de 50!**`;
       return colors.vermelho;
     }
   }
+
+  async incrementCounter(badword) {
+    const data = await this.get();
+    data[badword] = data[badword] ? 1 : data[badword] + 1;
+    this.set(data);
+  }
 }
 
 function createMessageEmbed(member, options, databaseUser, mostrar) {
@@ -97,8 +110,6 @@ function createMessageEmbed(member, options, databaseUser, mostrar) {
   const mostrar = options.getBoolean("mostrar");
 
   usuario.badwords = new UserBadwords(usuario);
-
-  const badwordsTotal = usuario.badwords.sum();
 
   const messageEmbed = new MessageEmbed()
     .setAuthor(usuario.username)
@@ -137,7 +148,7 @@ const command = {
     // { ... }.
 
     const configBadwords = config.discord.badwords;
-    const { channelId, author, content, client } = message;
+    const { channelId, author, client } = message;
 
     if (
       channelId === getChannelId("submundoChat") ||
@@ -150,38 +161,28 @@ const command = {
       return;
     }
 
+    author.badwords = new UserBadwords(author);
+
     const databaseUsers = await database.get("users");
 
-    if (!users[author.id]) {
-      users[author.id] = {
-        id: author.id,
-        badwords: {},
-      };
+    if (!databaseUsers[author.id]) {
+      users[author.id] = { badwords: {} };
       await database.set("users", users);
     }
 
     for (const configBadword of configBadwords) {
-      const contentFiltered = confusables.remove(content);
-      const configBadwordFiltered = confusables.remove(configBadword);
-      const regex = new RegExp(`\\b${configBadwordFiltered}\\b`, "i");
-
-      if (regex.test(contentFiltered)) {
+      if (UserBadwords.hasMessageBadword(message)) {
+        author.badwords.incrementCounter(configBadword)
         const channel = getChannel(client, "report");
 
         channel.send(
-            `Atenção! Um usuário disse uma palavra proibida:
+          `Atenção! Um usuário disse uma palavra proibida:
 
 Nome: ${author.username}
 Id: ${author.id}
 Mensagem: ${message.content}
-Link: ${message.url}
-`
-          );
-
-        const user = users[author.id];
-        users[author.id].badwords[word] = user.badwords[word] ? 1 : user.badwords[word] + 1;
-
-        await database.set("users", users);
+Link: ${message.url}`
+        );
       }
     }
   },

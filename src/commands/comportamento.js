@@ -1,31 +1,41 @@
 import Database from "@replit/database";
 import { MessageEmbed } from "discord.js";
-import { remove } from "confusables";
+import * as confusables from "confusables";
 
-import badwords from "../badwords.js";
+import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 
-// TODO: Put this function in ../utils/array.js
-function sumArray(array) {
-  const sum = (previousValue, currentValue) => previousValue + currentValue;
-  return array.reduce(sum);
+function getUserBadwordsTotal(userBadwords) {
+  let badwordsTotal = 0;
+
+  for (const badwordValue of Object.values(badwords)) {
+    badwordsTotal += badwordValue;
+  }
+
+  return badwordsTotal;
 }
 
-function createMessageEmbed(users, author) {
-  // TODO: Filtrar por somente badwords que ocorreram dentro de um mês
-  const { name, image, badwords } = users[author.id];
-  const badwordsEntries = Object.keys(badwords);
-  const badwordsValues = Object.values(badwords);
-  const badwordsTotal = sumArray(badwordsValues);
+function getUserBadwordsString(userBadwords) {
+  let badwordsString = "";
+
+  for (const [key, value] of Object.entries(badwords)) {
+    words += key + ": " + value + "\n";
+  }
+
+  return badwordsString;
+}
+
+function createMessageEmbed(user, mostrar) {
+  const userBadwordsTotal = getUserBadwordsTotal(user.badwords);
 
   let description;
   let color;
 
-  if (badwordsTotal < 10) {
+  if (userBadwordsTotal < 10) {
     color = "#ffffff";
     description = "Usuário comportado. Parabéns! :) \n O número de palavras ofensivas ditas é: **Abaixo de 10!**";
-  } else if (badwordsTotal < 50) {
+  } else if (userBadwordsTotal < 50) {
     color = "#facc41";
     description = "Opa! Percebemos um número um pouco frequente de palavras ofensivas ditas nos canais livres, vamos maneirar!";
   } else {
@@ -34,26 +44,28 @@ function createMessageEmbed(users, author) {
   }
 
   const messageEmbed = new MessageEmbed()
-    .setAuthor(name)
-    .setThumbnail(image)
+    .setAuthor(user.name)
+    .setThumbnail(user.image)
     .setDescription(description)
     .setColor(color);
 
-  if ((bool && administrador) || (bool && moderador)) {
-    let words = "";
+  if (mostrar) {
+    const administrador = getRole(member, "administrador");
+    const moderador = getRole(member, "moderador");
 
-    if (badwordsEntries.length > 0) {
-      for (const [key, value] of badwordsEntries) {
-        words += key + ": " + value + "\n";
-      }
+    if (administrador || moderador) {
+      const userBadwordsString = getUserBadwordsString(user.badwords);
+
+      messageEmbed.addFields({
+        name: "Lista de Palavras:",
+        value: userBadwordsString || "Não temos palavras!",
+      });
     } else {
-      words = "No words!";
+      messageEmbed.addFields({
+        name: "Lista de Palavras:",
+        value: "Você não ter permissão para ver a lista de palavras!",
+      });
     }
-
-    messageEmbed.addFields({
-      name: "Lista de Palavras:",
-      value: words,
-    });
   }
 }
 
@@ -67,6 +79,7 @@ const command = {
     // "users" and change the value of "usersData" from { "users": { ... } } to
     // { ... }.
 
+    const configBadwords = config.discord.badwords;
     const { submundoChat, submundoHumorNegro } = config.discord.channels;
     const { channelId, author, content, client } = message;
 
@@ -94,18 +107,17 @@ const command = {
     }
 
 
-    for (word of badwords) {
-      const regex = new RegExp(`\\b${word}\\b`, "i");
+    for (const configBadword of configBadwords) {
+      const contentFiltered = confusables.remove(content);
+      const configBadwordFiltered = confusables.remove(configBadword);
+      const regex = new RegExp(`\\b${configBadwordFiltered}\\b`, "i");
 
-      // NOTE: Unobfuscated or ...?
-      const contentUnobfuscated = remove(content);
-
-      if (regex.test(contentUnobfuscated)) {
-        const channel = getChannel("report");
+      if (regex.test(contentFiltered)) {
+        const channel = getChannel(client, "report");
 
         channel.send(
             `
-Atencao! Um usuário disse uma palavra proibida:
+Atenção! Um usuário disse uma palavra proibida:
 
 Nome: ${author.username}
 Id: ${author.id}
@@ -123,21 +135,20 @@ Link: ${message.url}
   },
 
   async execute(interaction) {
-    const { options } = interaction;
-    const administrador = getRole("administrador");
-    const moderador = getRole("moderador");
+    const { member, options } = interaction;
     const users = await database.get("users");
     const userId = options.getUser("id");
+    const user = users[userId];
     const mostrar = options.getBoolean("mostrar");
 
-    if (users[userId]) {
-      const messageEmbed = createMessageEmbed();
+    if (user) {
+      const messageEmbed = createMessageEmbed(member, target, mostrar);
 
       action.reply({ embeds: [messageEmbed] });
     } else {
       action.reply({
         // NOTE: Essa mensagem nao faz sentido
-        content: "Nenhum usuario com este ID!",
+        content: "Nenhum usuário com este ID!",
         ephemeral: true,
       });
     }

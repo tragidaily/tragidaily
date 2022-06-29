@@ -8,8 +8,7 @@ import { getCommandsJSONs } from "./src/handler.js";
   try {
     const { token, clientId, guildId } = config.discord;
     const rest = new REST({ version: "9" }).setToken(token);
-    const commands = await getCommandsJSONs();
-    const body = Array.from(commands.values());
+    const body = await getCommandsBody();
 
     console.log("Started refreshing application (/) commands.");
 

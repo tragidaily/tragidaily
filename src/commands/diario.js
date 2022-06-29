@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 
-import colors from "../colors.js";
+import config from "../../config.js";
 import { createSlashCommand } from "../builder.js";
 import { checkURL, hasURL } from "../utils/url.js";
 import { getRole, getChannel, getChannelId } from "../utils/discord.js";
@@ -19,6 +19,7 @@ function createMessageEmbedFooter(user) {
 }
 
 function createMessageEmbed(user) {
+  const { colors } = config.discord;
   const { options } = user;
 
   checkURL(options.getString("fonte"));
@@ -29,7 +30,7 @@ function createMessageEmbed(user) {
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
-    .setColor(colors[options.getString("cor")])
+    .setColor(colors[options.getString("cor")] || colors["vermelho"])
     .setFooter(createMessageEmbedFooter(user))
     .setThumbnail("./images/tragidaily.png")
     .setTimestamp();

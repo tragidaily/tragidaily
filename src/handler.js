@@ -58,4 +58,10 @@ async function getCommandsJSONs() {
   return commandsJSONs;
 }
 
-export { getCommandsModules, getCommandsJSONs };
+async function getCommandsBody() {
+  const commandsJSONs = await getCommandsJSONs();
+
+  return Array.from(commandsJSONs.values());
+}
+
+export { getCommandsModules, getCommandsBody };

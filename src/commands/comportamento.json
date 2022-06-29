@@ -5,14 +5,14 @@
     "options": [
       {
         "type": "user",
-        "name": "id",
-        "description": "O usuario alvo",
+        "name": "alvo",
+        "description": "Coloque o usuario alvo",
         "required": true
       },
       {
         "type": "boolean",
         "name": "mostrar",
-        "description": "Mostra a lista de palavras proibidas",
+        "description": "Mostre a lista de palavras proibidas",
         "required": false
       }
     ]

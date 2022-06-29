@@ -1,7 +1,7 @@
-import { test, find } from "linkifyjs";
+import * as linkify from "linkifyjs";
 
 function isURL(string) {
-  return test(string, "url");
+  return linkify.test(string, "url");
 }
 
 function checkURL(string) {
@@ -16,7 +16,7 @@ function checkURL(string) {
 }
 
 function hasURL(string) {
-  return find(string, "url").length > 0;
+  return linkify.find(string, "url").length > 0;
 }
 
 export { checkURL, hasURL };

@@ -48,7 +48,7 @@
       {
         "type": "string",
         "name": "cor",
-        "description": "autor",
+        "description": "Escolha uma cor para a exibição",
         "required": false
       }
     ]

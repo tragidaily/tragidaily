@@ -29,9 +29,9 @@ function createMessageEmbed(options, user) {
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
-    .setColor(colors[options.getString("cor")] || colors["vermelho"])
+    .setColor(colors[options.getString("cor")] || colors.vermelho)
     .setFooter(createMessageEmbedFooter(user))
-    .setThumbnail("../images/tragidaily.png") // TODO: ../images or ../../public/images/ ??
+    .setThumbnail("../../public/tragidaily.png") // TODO: ../images or ../../public/images/ ??
     .setTimestamp();
 
   const subtitulo = options.getString("subtitulo");

@@ -55,7 +55,7 @@ const config = {
       },
     },
 
-    colors = {
+    colors: {
       vermelho: "#b80000",
       laranja: "#ff8000",
       amarelo: "#fff200",

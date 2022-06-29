@@ -9,8 +9,9 @@ import { getRole, getChannel, getChannelId } from "../utils/discord.js";
 // TODO: Reduce database requests through cache
 // TODO: This code need to be optimized, the entire database is update
 // after every set.
+// TODO: Create a class called CachedDatabase
 class UserBadwords {
-  static database = new Database(config.replit.databaseUrl);
+  static database// = 14 // new Database(config.replit.databaseUrl);
 
   constructor(user) {
     this.user = user;

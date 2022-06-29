@@ -8,8 +8,7 @@ import { keepAlive } from "./src/server.js";
   const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
   });
-
-  client.commands = await getCommandsModules();
+  const commands = await getCommandsModules();
 
   client.once("ready", () => {
     console.log("Bot is ready!");
@@ -19,7 +18,7 @@ import { keepAlive } from "./src/server.js";
     try {
       const promises = [];
 
-      for (const command of client.commands) {
+      for (const command of commands) {
         promises.push(command.receive(message));
       }
 
@@ -34,7 +33,7 @@ import { keepAlive } from "./src/server.js";
       return;
     }
 
-    const command = client.commands.get(interaction.commandName);
+    const command = commands.get(interaction.commandName);
 
     if (!command) {
       return;

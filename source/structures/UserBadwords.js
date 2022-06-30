@@ -9,6 +9,16 @@ import Database from "@replit/database";
 // TODO: Reduce database requests through cache.
 // TODO: Create a class called CachedDatabase.
 
+// TODO: Counter ou Count?
+
+// TODO: Colocar acentos em todas as mensagens que serao mostradas ao usuario.
+// TODO: Criar um CONTRIBUTING.md avisando para apenas colocar acentos em
+// mensagens que serao mostradas ao usuario, em todos os outros casos nao.
+
+// TODO: Renomear getMatches para get
+
+// TODO: Criar atributos privados, por exemplo, database, user, message, ...
+
 class UserBadwords {
   static database = new Database(config.replit.databaseUrl);
 

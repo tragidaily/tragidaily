@@ -1,13 +1,14 @@
 import config from "../../config.js";
 import { getAllMatchesWithWord } from "../utilities/regexp.js";
 
+// TODO: Cache the result of getMatches method.
+
 class MessageBadwords {
   constructor(message) {
     this.message = message;
   }
 
-  // TODO: Cache the result of getMatches method.
-  getMatches() {
+  get() {
     const { badwords } = config.discord;
     const { content } = this.message;
 
@@ -15,7 +16,7 @@ class MessageBadwords {
 
     for (const badword of badwords) {
       for (const match of getAllMatchesWithWord(content, badword)) {
-        matches.push(match);
+        matches.push({ string: match[0], indices: match.indices });
       }
     }
 

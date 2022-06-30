@@ -74,9 +74,9 @@ const command = {
 
     await userBadwords.incrementCountFromMessageBadwords(messageBadwords);
 
-    for (const messageBadwordMatch of messageBadwords.getMatches()) {
+    for (const messageBadword of messageBadwords.get()) {
       const channel = getChannel(client, "report");
-      const reporteEmbed = createReporteEmbed(message, messageBadwordMatch);
+      const reporteEmbed = createReporteEmbed(message, messageBadword);
 
       channel.send({ embeds: [reporteEmbed] });
     }

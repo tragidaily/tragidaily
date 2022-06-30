@@ -17,13 +17,14 @@ import Database from "@replit/database";
 
 // TODO: Renomear getMatches para get
 
-// TODO: Criar atributos privados, por exemplo, database, user, message, ...
+// TODO: Criar atributos privados, por exemplo, database, user, message, etc.
+
+// TODO: Cache all methods from UserBadwords, MessageBadwords, etc.
+
+// TODO: In diario.js, rename createMessageEmbed to create<something>Embed.
 
 class UserBadwords {
   static database = new Database(config.replit.databaseUrl);
-
-  static getMessageBadwordsMatches(message) {
-  }
 
   constructor(user) {
     this.user = user;
@@ -114,13 +115,11 @@ O número de palavras ofensivas ditas é: **Acima de 50!**`;
     await this.set(data);
   }
 
-  async incrementCountFromMessage(messageBadwords) {
+  async incrementCountFromMessageBadwords(messageBadwords) {
     const promises = []
 
-    for (const messageBadwordMatch of messageBadwords.getMatches()) {
-      const messageBadwordString = messageBadwordMatch[0];
-
-      promises.push(userBadwords.incrementCounter(messageBadwordString));
+    for (const messageBadword of messageBadwords.get()) {
+      promises.push(userBadwords.incrementCounter(messageBadword.string));
     }
 
     await promises;

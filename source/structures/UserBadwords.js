@@ -1,41 +1,25 @@
 import Database from "@replit/database";
-import * as confusables from "confusables";
 
 import config from "../../config.js";
+import { getAllMatchesWithWord } from "../utilities/regexp.js"
 
 // TODO: Reduce database requests through cache
 // TODO: This code need to be optimized, the entire database is update
 // after every set.
 // TODO: Create a class called CachedDatabase
 
-// Ponha essa funcao no "../utilities"
-
-function findWordMatches(string, word) {
-}
-
 class UserBadwords {
   static database = new Database(config.replit.databaseUrl);
 
-  // NOTE: FIND ou outro nome/verbo?? :thinking:
-
-  // TODO: Retornar o index da palavra encontrada e usar essa informação depois
-  // pra apresentar aos moderadores a palavra na frase em **NEGRITO**
-  static findMessageBadwords(message) {
+  static getMessageBadwordsMatches(message) {
+    const { badwords } = config.discord;
     const { content } = message;
-    const configBadwords = config.discord.badwords;
 
-    // TODO: Use better names!
     let messageBadwords = []
 
-    for (const configBadword of configBadwords) {
-      const configBadwordFiltered = confusables.remove(configBadword);
-      const contentFiltered = confusables.remove(content);
-      // TODO: A lista de match vai retornar especo tanto no inicio quanto no fim!
-      // Ao invés de "burro", ta " barro ", resolva isso!
-      const regex = new RegExp(`\\b${configBadwordFiltered}\\b`, "gi");
-
-      for (const result of contentFiltered.match(regex)) {
-        messageBadwords.push(result);
+    for (const badword of badwords) {
+      for (const match of getAllMatchesWithWord(content, badword)) {
+        messageBadwords.push(match);
       }
     }
 
@@ -106,8 +90,8 @@ O número de palavras ofensivas ditas é: **Acima de 50!**`;
   }
 
   async getColor() {
-    const total = await this.getTotal();
     const { colors } = config.discord;
+    const total = await this.getTotal();
 
     if (total < 10) {
       return colors.branco;
@@ -120,8 +104,9 @@ O número de palavras ofensivas ditas é: **Acima de 50!**`;
 
   async incrementCounter(badword) {
     const data = await this.get();
-    data[badword] = data[badword] ? 1 : data[badword] + 1;
-    this.set(data);
+
+    data[badword] = data[badword] ? data[badword] + 1 : 1;
+    await this.set(data);
   }
 }
 

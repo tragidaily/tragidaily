@@ -1,16 +1,33 @@
 import { MessageEmbed } from "discord.js";
 
+import config from "../../config.js";
 import UserBadwords from "../structures/UserBadwords.js";
 import { createSlashCommand } from "../builder.js";
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createMessageEmbed(member, options) {
+function createReporteEmbed(message) {
+  const { author } = message;
+
+  return new MessageEmbed()
+    .setURL(message.url)
+    .setTitle("Reporte")
+    .setAuthor(author.username)
+    .setThumbnail(author.avatar)
+    .setColor(author.badwords.getColor())
+    .setTimestamp()
+    .addField("nome", author.username, true)
+    .addField("id", author.id, true)
+    .addField("mensagem", message.content, true)
+    .addField("link", message.url, true);
+}
+
+function createComportamentoEmbed(member, options) {
   const usuario = options.getUser("usuario");
   const mostrar = options.getBoolean("mostrar");
 
   usuario.badwords = new UserBadwords(usuario);
 
-  const messageEmbed = new MessageEmbed()
+  const interactionEmbed = new MessageEmbed()
     .setAuthor(usuario.username)
     .setThumbnail(usuario.avatar)
     .setDescription(usuario.badwords.getDescription())
@@ -23,15 +40,15 @@ function createMessageEmbed(member, options) {
     if (administrador || moderador) {
       const userBadwordsString = user.badwords.toString();
 
-      messageEmbed.addFields({
-        name: "Lista de Palavras:",
-        value: userBadwordsString || "Não temos palavras!",
-      });
+      interactionEmbed.addField(
+        "Lista de Palavras",
+        userBadwordsString || "Não temos palavras!",
+      );
     } else {
-      messageEmbed.addFields({
-        name: "Lista de Palavras:",
-        value: "Você não ter permissão para ver a lista de palavras!",
-      });
+      interactionEmbed.addField(
+        "Lista de Palavras",
+        "Você não ter permissão para ver a lista de palavras!",
+      );
     }
   }
 }
@@ -58,11 +75,14 @@ const command = {
     }
 
     author.badwords = new UserBadwords(author);
+    message.badwordsMatches = UserBadwords.getMessageBadwordsMatches(message);
 
-    const messageBadwords = UserBadwords.findMessageBadwords(message);
+    // TODO: Retornar o index da palavra encontrada e usar essa informação depois
+    // pra apresentar aos moderadores a palavra na frase em **NEGRITO**
+    for (const messageBadwordMatch of message.badwordsMatches) {
+      const messageBadword = messageBadwordMatch[0];
+      author.badwords.incrementCounter(messageBadword);
 
-    for (const messageBadword of messageBadwords) {
-      author.badwords.incrementCounter(messageBadword)
       const channel = getChannel(client, "report");
 
       // TODO: Use a messageEmbed here! Please!
@@ -80,9 +100,9 @@ Link: ${message.url}`
   async execute(interaction) {
     const { member, options } = interaction;
 
-    const messageEmbed = createMessageEmbed(member, options);
+    const interactionEmbed = createInteractionEmbed(member, options);
 
-    action.reply({ embeds: [messageEmbed] });
+    action.reply({ embeds: [interactionEmbed] });
   },
 };
 

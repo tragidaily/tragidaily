@@ -5,7 +5,7 @@ import { createSlashCommand } from "../builder.js";
 import { checkURL, hasURL } from "../utilities/url.js";
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createMessageEmbedFooter(user) {
+function createInteractionEmbedFooter(user) {
   const { options, username } = user;
 
   const autor = options.get("autor");
@@ -18,19 +18,19 @@ function createMessageEmbedFooter(user) {
   };
 }
 
-function createMessageEmbed(options, user) {
+function createInteractionEmbed(options, user) {
   const { colors } = config.discord;
 
   checkURL(options.getString("fonte"));
   checkURL(options.getString("imagem"));
 
-  const messageEmbed = new MessageEmbed()
+  const interactionEmbed = new MessageEmbed()
     .setURL(options.getString("fonte"))
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
     .setColor(colors[options.getString("cor")] || colors.vermelho)
-    .setFooter(createMessageEmbedFooter(user))
+    .setFooter(createInteractionEmbedFooter(user))
     .setThumbnail("../../public/tragidaily.png") // TODO: ../images or ../../public/images/ ??
     .setTimestamp();
 
@@ -38,7 +38,7 @@ function createMessageEmbed(options, user) {
   const subdescricao = options.getString("subdescricao");
 
   if (subtitulo) {
-    messageEmbed.addFields({
+    interactionEmbed.addFields({
       name: subtitulo,
 
       // NOTE: Deveria ser um "-"?
@@ -46,7 +46,7 @@ function createMessageEmbed(options, user) {
     });
   }
 
-  return messageEmbed;
+  return interactionEmbed;
 }
 
 const command = {
@@ -74,9 +74,9 @@ const command = {
     const channel = getChannel(client, role ? "diario" : "jornal");
 
     try {
-      const messageEmbed = createMessageEmbed(options, user);
+      const interactionEmbed = createInteractionEmbed(options, user);
 
-      channel.send({ embeds: [messageEmbed] });
+      channel.send({ embeds: [interactionEmbed] });
 
       // NOTE: ephemeral = true or false?
       await interaction.reply({

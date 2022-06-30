@@ -65,5 +65,4 @@ function createSlashCommand(filepath) {
   return data;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export { createSlashCommand };

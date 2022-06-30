@@ -2,7 +2,7 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 
 import config from "./config.js";
-import { getCommandsJSONs } from "./src/handler.js";
+import { getCommandsBody } from "./source/handler.js";
 
 (async () => {
   try {

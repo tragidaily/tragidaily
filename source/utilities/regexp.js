@@ -2,12 +2,13 @@ import * as confusables from "confusables";
 
 function getAllMatchesWithWord(string, word) {
   // Remove confusables
-  string = confusables.remove(string);
-  word = confusables.remove(word);
+  const newString = confusables.remove(string);
+  const newWord = confusables.remove(word);
 
-  const regexp = new RegExp(`\\b${word}\\b`, "dgi");
+  // eslint-disable-next-line security/detect-non-literal-regexp
+  const regexp = new RegExp(`\\b${newWord}\\b`, "dgiu");
 
-  return Array.from(string.matchAll(regexp));
+  return Array.from(newString.matchAll(regexp));
 }
 
 export { getAllMatchesWithWord };

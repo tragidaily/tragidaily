@@ -9,7 +9,9 @@
   },
   "rules": {
     "no-console": "off",
+    "import/no-namespace": "off",
     "import/no-unused-modules": "off",
+    "import/prefer-default-export": "off",
     "node/file-extension-in-import": "off",
     "node/no-unsupported-features/es-syntax": [
       "error",

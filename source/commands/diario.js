@@ -41,7 +41,7 @@ function createMessageEmbed(options, user) {
     messageEmbed.addFields({
       name: subtitulo,
 
-      // NOTE: Deveria ser um "-"?
+      // NOTE: Should it be only a "-"?
       value: subdescricao || "-",
     });
   }

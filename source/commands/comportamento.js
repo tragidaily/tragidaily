@@ -3,22 +3,26 @@ import { MessageEmbed } from "discord.js";
 import config from "../../config.js";
 import UserBadwords from "../structures/UserBadwords.js";
 import { createSlashCommand } from "../builder.js";
+import {}
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createReporteEmbed(message) {
+
+function createReporteEmbed(message, messageBadwordMatch) {
   const { author } = message;
 
+  const content = boldSubstringFromMatch(message.content, messageBadwordMatch);
+
   return new MessageEmbed()
-    .setURL(message.url)
     .setTitle("Reporte")
+    .setDescription("Atenção! Um usuário disse uma palavra proibida.")
+    .setURL(message.url)
     .setAuthor(author.username)
     .setThumbnail(author.avatar)
     .setColor(author.badwords.getColor())
     .setTimestamp()
     .addField("nome", author.username, true)
     .addField("id", author.id, true)
-    .addField("mensagem", message.content, true)
-    .addField("link", message.url, true);
+    .addField("mensagem", content);
 }
 
 function createComportamentoEmbed(member, options) {
@@ -28,9 +32,10 @@ function createComportamentoEmbed(member, options) {
   usuario.badwords = new UserBadwords(usuario);
 
   const interactionEmbed = new MessageEmbed()
+    .setTitle("Comportamento")
+    .setDescription(usuario.badwords.getDescription())
     .setAuthor(usuario.username)
     .setThumbnail(usuario.avatar)
-    .setDescription(usuario.badwords.getDescription())
     .setColor(usuario.badwords.getColor());
 
   if (mostrar) {
@@ -77,32 +82,24 @@ const command = {
     author.badwords = new UserBadwords(author);
     message.badwordsMatches = UserBadwords.getMessageBadwordsMatches(message);
 
-    // TODO: Retornar o index da palavra encontrada e usar essa informação depois
-    // pra apresentar aos moderadores a palavra na frase em **NEGRITO**
     for (const messageBadwordMatch of message.badwordsMatches) {
       const messageBadword = messageBadwordMatch[0];
+
       author.badwords.incrementCounter(messageBadword);
 
       const channel = getChannel(client, "report");
+      const reporteEmbed = createReporteEmbed(message, messageBadwordMatch);
 
-      // TODO: Use a messageEmbed here! Please!
-      channel.send(
-        `Atenção! Um usuário disse uma palavra proibida:
-
-Nome: ${author.username}
-Id: ${author.id}
-Mensagem: ${message.content}
-Link: ${message.url}`
-      );
+      channel.send({ embeds: [reporteEmbed] });
     }
   },
 
   async execute(interaction) {
     const { member, options } = interaction;
 
-    const interactionEmbed = createInteractionEmbed(member, options);
+    const comportamentoEmbed = createComportamentoEmbed(member, options);
 
-    action.reply({ embeds: [interactionEmbed] });
+    action.reply({ embeds: [comportamentoEmbed] });
   },
 };
 

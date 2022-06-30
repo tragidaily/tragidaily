@@ -5,7 +5,7 @@ import { createSlashCommand } from "../builder.js";
 import { checkURL, hasURL } from "../utilities/url.js";
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createInteractionEmbedFooter(user) {
+function createMessageEmbedFooter(user) {
   const { options, username } = user;
 
   const autor = options.get("autor");
@@ -18,27 +18,27 @@ function createInteractionEmbedFooter(user) {
   };
 }
 
-function createInteractionEmbed(options, user) {
+function createMessageEmbed(options, user) {
   const { colors } = config.discord;
 
   checkURL(options.getString("fonte"));
   checkURL(options.getString("imagem"));
 
-  const interactionEmbed = new MessageEmbed()
+  const messageEmbed = new MessageEmbed()
     .setURL(options.getString("fonte"))
     .setTitle(options.getString("titulo"))
     .setDescription(options.getString("descricao"))
     .setImage(options.getString("imagem"))
     .setColor(colors[options.getString("cor")] || colors.vermelho)
-    .setFooter(createInteractionEmbedFooter(user))
-    .setThumbnail("../../public/tragidaily.png") // TODO: ../images or ../../public/images/ ??
+    .setFooter(createMessageEmbedFooter(user))
+    .setThumbnail("../../public/tragidaily.png")
     .setTimestamp();
 
   const subtitulo = options.getString("subtitulo");
   const subdescricao = options.getString("subdescricao");
 
   if (subtitulo) {
-    interactionEmbed.addFields({
+    messageEmbed.addFields({
       name: subtitulo,
 
       // NOTE: Deveria ser um "-"?
@@ -46,7 +46,7 @@ function createInteractionEmbed(options, user) {
     });
   }
 
-  return interactionEmbed;
+  return messageEmbed;
 }
 
 const command = {
@@ -74,9 +74,9 @@ const command = {
     const channel = getChannel(client, role ? "diario" : "jornal");
 
     try {
-      const interactionEmbed = createInteractionEmbed(options, user);
+      const messageEmbed = createMessageEmbed(options, user);
 
-      channel.send({ embeds: [interactionEmbed] });
+      channel.send({ embeds: [messageEmbed] });
 
       // NOTE: ephemeral = true or false?
       await interaction.reply({

@@ -22,6 +22,13 @@ class MessageBadwords {
 
     return matches;
   }
+
+  boldBadword() {
+    const { content } = this.message;
+    const data = this.get();
+
+    return boldSubstring(content, data.indices[0], data.indices[1]);
+  }
 }
 
 export default MessageBadwords;

@@ -6,8 +6,9 @@ function boldSubstring(string, indexStart, indexEnd) {
   return string.replace(substring, bold(substring));
 }
 
-function boldSubstringFromMatch(string, match) {
-  return boldSubstring(string, match.index, match[0].length);
+// TODO: Não tá muito grande?
+function boldSubstringFromMessageBadword(string, messageBadword) {
+  return boldSubstring(string, match.indices[0], match.indices[1]);
 }
 
-export { boldSubstringFromMatch };
+export { boldSubstringFromMessageBadword };

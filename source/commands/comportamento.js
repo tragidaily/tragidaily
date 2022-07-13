@@ -3,13 +3,14 @@ import { MessageEmbed } from "discord.js";
 import UserBadwords from "../structures/UserBadwords.js";
 import MessageBadwords from "../structures/MessageBadwords.js";
 import { createSlashCommand } from "../builder.js";
-import { boldSubstringFromMatch } from "../utilities/markdown.js";
+import { boldSubstringFromMessageBadword } from "../utilities/markdown.js";
 import { getRole, getChannel, getChannelId } from "../utilities/discord.js";
 
-function createReporteEmbed(message, messageBadwordMatch) {
+function createReporteEmbed(message, messageBadword) {
   const { author, content, url } = message;
 
-  const contentWithBold = boldSubstringFromMatch(content, messageBadwordMatch);
+  const contentWithBold =
+    boldSubstringFromMessageBadword(content, messageBadword);
 
   return new MessageEmbed()
     .setTitle("Reporte")

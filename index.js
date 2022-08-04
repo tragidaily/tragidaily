@@ -8,7 +8,6 @@ GatewayIntentBits.GuildMembers
 const { discord } = require("./config")
 const Database = require("@replit/database");
 const db = new Database();
-const badWords = require("./badWords");
 
 
 const mainFunctions = {};
@@ -37,12 +36,6 @@ for (const file of commandFiles) {
 }
 
 client.on("ready", async () => {
-  await db.set("badWords", badWords);
-  await db.set("role_986208551376678922", { tolerance: 999, name: "patrocinador" });
-  await db.set("role_921739642313785344", { tolerance: 5, name: "sub" });
-  await db.set("role_895635525669646346",  { tolerance: 5, name: "guardião" });
-  await db.set("role_872869896223084584", { tolerance: 4, name: "lenda" });
-  await db.set("role_872869880892891136", { tolerance: 3, name: "herói" });
   console.log("on");
 });
 

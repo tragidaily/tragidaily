@@ -1,92 +1,32 @@
 const fs = require("node:fs");
-const { remove } = require("confusables");
-const { Client, Collection, Intents } = require("discord.js");
-const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-});
-const token = process.env["token"];
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const client = new Client({ intents: [GatewayIntentBits.Guilds, 
+GatewayIntentBits.GuildMessages,
+GatewayIntentBits.GuildMembers,
+GatewayIntentBits.GuildMembers
+] });
+const { discord } = require("./config")
 const Database = require("@replit/database");
 const db = new Database();
-const keepAlive = require("./server.js");
+
+
+const mainFunctions = {};
+
 
 client.commands = new Collection();
 
-let badWords = [
-  "vai se fude",
-  "vai pro caralho",
-  "caralhudo",
-  "va para o caralho",
-  "porrinha",
-  "baitola",
-  "bicha",
-  "boceta",
-  "buceta",
-  "bucetão",
-  "cuzão",
-  "fuder",
-  "cacete",
-  "pênis",
-  "transar",
-  "foder",
-  "fodendo",
-  "boquete",
-  "vsf",
-  "fdp",
-  "xereca",
-  "xana",
-  "vagina",
-  "cu",
-  "cuzinho",
-  "bucetinha",
-  "corno",
-  "corna",
-  "cuzuda",
-  "fode",
-  "fodida",
-  "fudido",
-  "fudida",
-  "fodido",
-  "pinto",
-  "pintão",
-  "roludo",
-  "roluda",
-  "sacudo",
-  "piroca",
-  "punheta",
-  "punhetão",
-  "masturbação",
-  "puta",
-  "puto",
-  "siririca",
-  "vagabunda",
-  "vagabundo",
-  "xota",
-  "xoxota",
-  "xaninha",
-  "arrombado",
-  "boqueteiro",
-  "cabaço",
-  "fimosento",
-  "demente",
-  "cocozento",
-  "vadia",
-  "vai a merda",
-  "va a merda",
-  "xavasca",
-  "boiola",
-  "gozada",
-  "gozar",
-  "gozei",
-  "esperma",
-  "masturbar",
-  "masturba",
-  "masturbe",
-  "masturbe-se",
-];
+const mainFunctionsFiles = fs
+  .readdirSync("./mainFunctions")
+  .filter((file) => file.endsWith(".js"));
 
 const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
+
+for (const file of mainFunctionsFiles) {
+  const func = require(`./mainFunctions/${file}`);
+  mainFunctions[func.name] = func.call;
+}
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
@@ -99,69 +39,60 @@ client.on("ready", async () => {
   console.log("on");
 });
 
-client.on('messageCreate', async msg => {
-  if(msg.author.bot) return;
-	if(msg.channelId == '961176960086720532'||msg.channelId == "864730261588803605") { 
-		let rg = /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/;
-		if(!msg.attachments.firstKey()&&!msg.content.match(rg)){
-			setTimeout(() => msg.delete(), 1000);
-		}
-	}
+client.on("guildMemberUpdate", async (event) => {
+const { warnDetect } = mainFunctions;
+const member = await event.fetch();
+const user = await db.get(`user_${member.id}`);
+if (!user) return;
+let warnData = await warnDetect(member, user);
+await db.set(`user_${member.id}`, {...user, warnData: warnData});
+});
 
-  const adm = msg.member.roles.cache.get("864720804691050496");
-  const mod = msg.member.roles.cache.get("959787387184107580");
-  const assist = msg.member.roles.cache.get("981274684458958878");
-
-if(msg.channelId == '961172391529160734'||msg.channelId == '961176833343246348') return;
-let data = await db.get("usersData");
-let user = data['users'][msg.author.id];
+client.on("messageCreate", async (msg) => {
+  if (msg.author.bot) return;
   
+  const { linkCheck, warnDetect, infractionCheck } = mainFunctions;
+  //Only accept links and attachments in the specified channels
+  let isMediaChannel = linkCheck(msg);
+  if (isMediaChannel) setTimeout(() => msg.delete(), 1000);
+
+  //Add the user to the database
+  const adm = msg.member.permissions.has("ModerateMembers");
+  const { id } = msg.author;
+
+  const template = {
+    badWords: {},
+    warnData: {}
+  };
+
+  const user = await db.get(`user_${id}`);
+
   if (!user) {
-    data['users'][msg.author.id] = {
-      id: msg.author.id,
-      name: `${msg.author.username}`,
-      img: msg.author.avatarURL(),
-      badWords: {},
-    };
-    await db.set("usersData", data);
-    data = await db.get("usersData");
-    user = data['users'][msg.author.id];
-  }
-  else {
-    data['users'][msg.author.id] = {
-      id: msg.author.id,
-      name: `${msg.author.username}`,
-      img: msg.author.avatarURL(),
-      badWords: user['badWords'],
-    };
-    await db.set("usersData", data);
-    data = await db.get("usersData");
-    user = data['users'][msg.author.id];
-  }
-  if(adm||mod||assist) return;
-  let check = msg.content;
-  for (word of badWords) {
-    let rgx = new RegExp("\\b" + remove(word) + "\\b", "ig");
-    let bol = remove(check).match(rgx);
-    if (bol) {
-      msg.client.channels.cache
-        .find((ch) => ch.id == "959996003816185908")
-        .send(
-          `Atenção! Um usuário disse uma palavra proibida: \n Nome: ${msg.author.username} \n Id: ${msg.author.id} \n Mensagem: ${msg.content} \n Link: ${msg.url}`
-        );
-      if (!user.badWords[word]) {
-        data['users'][user['id']].badWords[word] = 1;
-        await db.set("usersData", data);
+    await db.set(`user_${id}`, {...template, warnData: await warnDetect(msg.member)});
+  } 
+   
+  if (adm || !user) return;
+  
+  //Test if the word is a bad word
+  const infraction = await infractionCheck(await msg.fetch());
+
+  if (infraction) {
+const channel = msg.client.channels.cache.get(discord.channels.reportChannel)
+    for (let word of infraction.words) {
+      let badWordsAtt = {...user["badWords"]};
+      if (!user?.badWords[word]) {
+        badWordsAtt[word] = 1;
       } else {
-        data['users'][user['id']].badWords[word]++;
-        await db.set("usersData", data);
+        badWordsAtt[word]++;
       }
+      await db.set(`user_${id}`, {...user, badWords: badWordsAtt});
     }
+    channel.send({ embeds: [infraction.embed] })
   }
-  });
+});
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
 
@@ -178,5 +109,4 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-keepAlive();
-client.login(token);
+client.login(discord.token);

@@ -1,57 +1,80 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder, PermissionFlagsBits  } = require("discord.js");
+const { replit } = require("../config");
 const Database = require("@replit/database");
-const db = new Database(process.env.REPLIT_DB_URL);
+const db = new Database(replit.databaseUrl);
 const warnDetect = require("../mainFunctions/warnDetect");
+
+const userHasPermissions = (action) => {
+  const adm = action.member.permissions.has("ModerateMembers");
+  if (!adm) {
+    action.reply("Parado aí! Somente membros da staff configurar os warns!");
+    throw Error;
+  }
+  return;
+};
+
+const setRole = async (action) => {
+  const role = action.options.getRole("role");
+  const roleLimit = action.options.getInteger("limite");
+
+  let roleExist = await db.get(`role_${role.id}`),
+    message;
+
+  if (!roleExist) {
+    message = `O cargo de nome ${role.name}, receberá as tolerâncias de ${roleLimit} para red flag e ${
+      roleLimit * 2
+    } para yellow flag.`;
+  } else {
+    message = `Cargo de nome ${role.name} já existe. Seu limete será atualizado de ${roleExist["tolerance"]} para ${roleLimit}.`;
+  }
+  action.reply({
+    content: message,
+    ephemeral: true,
+  });
+  await db.set(`role_${role.id}`, { tolerance: roleLimit, name: role.name });
+};
+
+const setMembersNewRoles = async action => {
+  const roleId = action.options.getRole("role").id;
+  const roles = await action.guild.roles.fetch();
+  const roleMembers = roles.get(roleId).members;
+
+  if (roleMembers) {
+    for await (let member of roleMembers) {
+      const memberId = `user_${member[0]}`;
+      const memberData = await db.get(memberId);
+      if (!memberData) continue;
+      const toleranceAtt = await warnDetect.call(member[1], memberData);
+      await db.set(memberId, { ...memberData, warnData: toleranceAtt });
+    }
+  }
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("AddRoleLimit")
+    .setName("warns_limite")
     .setDescription("Adiciona um cargo a lista de warns.")
-    .addStringOption((option) =>
+    .addRoleOption((option) =>
       option
-        .setName("RoleId")
-        .setDescription("Digite o Id do cargo.")
+        .setName("role")
+        .setDescription("Digite o @ do cargo.")
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
-        .setName("RoleLimit")
+        .setName("limite")
         .setDescription("Digite o total de warns.")
         .setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction) {
     const action = await interaction;
-    const adm = action.member.permissions.has("MODERATE_MEMBERS");
-
-    if (!adm) {
-      interaction.reply(
-        "Parado aí! Somente membros da staff configurar os warns!"
-      );
-      return;
+    try {
+      userHasPermissions(action);
+      await setRole(action);
+      await setMembersNewRoles(action);
+    } catch (error) {
+      console.log(error);
     }
-
-    const RoleId = action.options.getString("RoleId");
-    const RoleLimit = action.options.getInteger("RoleLimit");
-
-    if (!guild.roles.cache.get(RoleId)) {
-      interaction.reply("Cargo inválido!");
-    }
-    
-    let data = await db.get("usersData"), found = false, newData = [];
-    for (let role in data) {
-        const roleName = action.guild.roles.cache.get(role["roleId"]).name;
-        if (role['roleId'] === RoleId) {
-            newData.push({ roleId: role["roleId"], tolerance: RoleLimit, name: roleName});
-            found = true;
-        }
-        else {
-            newData.push({ roleId: role["roleId"], tolerance: role["tolerance"], name: roleName});
-        }
-    }
-
-    if (!found) {
-        newData.push({ roleId: RoleId, tolerance: RoleLimit, name: action.guild.roles.cache.get(RoleId).name })
-    }
-    await db.set("warnData", newData);
   },
 };

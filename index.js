@@ -1,20 +1,19 @@
 const fs = require("node:fs");
-const { Client, Collection, Intents } = require("discord.js");
-const client = new Client({
-  intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_PRESENCES,
-  ],
-});
-const token = process.env["token"];
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const client = new Client({ intents: [GatewayIntentBits.Guilds, 
+GatewayIntentBits.GuildMessages,
+GatewayIntentBits.GuildMembers,
+GatewayIntentBits.GuildMembers
+] });
+const { discord } = require("./config")
 const Database = require("@replit/database");
 const db = new Database();
 const badWords = require("./badWords");
-const keepAlive = require("./server.js");
+
 
 const mainFunctions = {};
+
+
 client.commands = new Collection();
 
 const mainFunctionsFiles = fs
@@ -38,102 +37,69 @@ for (const file of commandFiles) {
 }
 
 client.on("ready", async () => {
-  await db.set("warnData", [
-    { roleId: "986208551376678922", tolerance: 999, name: "patrocinador" },
-    { roleId: "921739642313785344", tolerance: 5, name: "sub" },
-    { roleId: "895635525669646346", tolerance: 5, name: "guardião" },
-    { roleId: "872869896223084584", tolerance: 4, name: "lenda" },
-    { roleId: "872869880892891136", tolerance: 3, name: "herói" },
-  ]);
   await db.set("badWords", badWords);
+  await db.set("role_986208551376678922", { tolerance: 999, name: "patrocinador" });
+  await db.set("role_921739642313785344", { tolerance: 5, name: "sub" });
+  await db.set("role_895635525669646346",  { tolerance: 5, name: "guardião" });
+  await db.set("role_872869896223084584", { tolerance: 4, name: "lenda" });
+  await db.set("role_872869880892891136", { tolerance: 3, name: "herói" });
   console.log("on");
 });
 
-client.on("guildMemberUpdate", async (member) => {
-  let data = await db.get("usersData");
-  let userWarns = data["users"][member.id]["warns"];
-
-  if (!userWarns) return;
-
-  let warnData = warnDetect(member);
-  if (typeof warnData == "object") {
-    if (typeof userWarns == "string")
-      userWarns = {
-        quantity: 0,
-        level: 0,
-        punish: false,
-      };
-    warnData.quantity = userWarns.quantity;
-    warnData.level = userWarns.level;
-
-    if (warnData.total >= warnData.quantity) warnData.punish = true;
-    else warnData.punish = false;
-  }
-  data["users"][member.id]["warns"] = warnData;
-  await db.set("usersData", data);
+client.on("guildMemberUpdate", async (event) => {
+const { warnDetect } = mainFunctions;
+const member = await event.fetch();
+const user = await db.get(`user_${member.id}`);
+if (!user) return;
+let warnData = await warnDetect(member, user);
+await db.set(`user_${member.id}`, {...user, warnData: warnData});
 });
 
 client.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
+  
   const { linkCheck, warnDetect, infractionCheck } = mainFunctions;
   //Only accept links and attachments in the specified channels
   let isMediaChannel = linkCheck(msg);
   if (isMediaChannel) setTimeout(() => msg.delete(), 1000);
 
   //Add the user to the database
-  const adm = msg.member.permissions.has("MODERATE_MEMBERS");
-  const { id, username, avatarURL } = msg.author;
+  const adm = msg.member.permissions.has("ModerateMembers");
+  const { id } = msg.author;
+
   const template = {
-    id: id,
-    name: `${username}`,
-    img: avatarURL(),
     badWords: {},
+    warnData: {}
   };
 
-  let data = await db.get("usersData");
-  let user = data["users"][id];
+  const user = await db.get(`user_${id}`);
 
   if (!user) {
-    data["users"][id] = template;
-  } else if (!user["warns"]) {
-    let warnData = warnDetect(msg.member);
-    data["users"][id] = {
-      ...template,
-      warns: warnData,
-      badWords: user["badWords"],
-    };
-  } else {
-    data["users"][id] = {
-      ...template,
-      warns: user["warns"],
-      badWords: user["badWords"],
-    };
-  }
-  await db.set("usersData", data);
-  data = await db.get("usersData");
-  user = data["users"][id];
-
-  if (adm) return;
+    await db.set(`user_${id}`, {...template, warnData: await warnDetect(msg.member)});
+  } 
+   
+  if (adm || !user) return;
+  
   //Test if the word is a bad word
-  const infraction = infractionCheck(msg);
+  const infraction = await infractionCheck(await msg.fetch());
+
   if (infraction) {
-    const channel = msg.client.channels.cache.find(
-      (ch) => ch.id == "959996003816185908"
-    );
+const channel = msg.client.channels.cache.get(discord.channels.reportChannel)
     for (let word of infraction.words) {
-      if (!user.badWords[word]) {
-        data["users"][user["id"]].badWords[word] = 1;
+      let badWordsAtt = {...user["badWords"]};
+      if (!user?.badWords[word]) {
+        badWordsAtt[word] = 1;
       } else {
-        data["users"][user["id"]].badWords[word]++;
+        badWordsAtt[word]++;
       }
-      await db.set("usersData", data);
+      await db.set(`user_${id}`, {...user, badWords: badWordsAtt});
     }
     channel.send({ embeds: [infraction.embed] })
   }
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
 
@@ -150,5 +116,4 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-keepAlive();
-client.login(token);
+client.login(discord.token);

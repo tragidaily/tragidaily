@@ -1,7 +1,8 @@
-const { onlyMediaChannels } = require("../config")
+const { discord } = require("../config")
+const { channels } = discord;
 
 function linkCheck (msg) {
-    for (let ch of onlyMediaChannels) {
+    for (let ch of channels.onlyMediaChannels) {
         if (msg.channelId == ch) {
             let rg =
             /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/;

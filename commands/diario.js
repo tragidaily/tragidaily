@@ -1,125 +1,142 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
+const { discord } = require("../config")
+
+const sendEmbed = async action => {
+
+  const
+  { jornalistaInvestigativo, patrocinador, sub } = discord.roles,
+  channels = discord.channels.newsChannels,
+  user = await action.member.fetch(),
+  getProfile = await action.user.fetch(),
+  title = action.options.getString("título"), 
+  description = action.options.getString("descrição"),
+  image = action.options.getAttachment("imagem").url, 
+  channelName = action.options.getString("canal"),
+  channel = (await action.guild.channels.fetch()).get(channels[channelName]),
+  subtitle = action.options.getString("subtitulo"), 
+  subdescription = action.options.getString("subdescrição"),
+  source = action.options.getString("fonte"),
+  color = action.options.getString("cor");
+
+  const exampleEmbed = new EmbedBuilder()
+        .setTitle(title)
+        .setColor(color) .setThumbnail("https://cdn.discordapp.com/attachments/985892754271911936/1004266803750506616/tragidaily.png")
+        .setImage(image)
+        .setTimestamp()
+        .setFooter({
+          text: `Autor: ${getProfile.tag}`,
+          iconURL: getProfile.avatarURL(),
+        });
+
+  if (description) {
+    exampleEmbed.setDescription(description);
+  }
+
+  if (source) {
+    exampleEmbed.setURL(source);
+  }
+  
+  if (subtitle||subdescription) {
+    let field = { name: "-", value: "-" };
+    if (subtitle) field["name"] = subtitle;
+    if (subdescription) field["value"] = subdescription;
+    exampleEmbed.addFields(field);
+  }
+
+  if (channelName == "tc_diario") {
+    const roles = [jornalistaInvestigativo, sub, patrocinador];
+    let hasRole = false;
+    for (let role of roles) {
+     if (user.roles.cache.get(role.id)) {
+      hasRole = true;
+     }
+    }
+    if (!hasRole) {
+      action.reply({
+        content: "Você não tem permissão para enviar neste canal.",
+        ephemeral: true
+      })
+      return;
+    }
+  }
+  channel.send({
+    embeds: [exampleEmbed]
+  })
+  action.reply({
+    content: "Postagem publicada!",
+    ephemeral: true
+  })
+}
+
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("diario")
-    .setDescription("Divulgue um acontecimento!!")
+    .setName("postar")
+    .setDescription("divulgue um acontecimento!!")
     .addStringOption((option) =>
       option
         .setName("título")
-        .setDescription("Escreva seu título!")
+        .setDescription("escreva seu título!")
         .setRequired(true)
     )
+    .addAttachmentOption((option) =>
+    option
+      .setName("imagem")
+      .setDescription("adicione uma imagem.")
+      .setRequired(true)
+  )
+  .addStringOption((option) =>
+  option.setName("cor").setDescription("escolha uma cor para a exibição.")
+  .addChoices(
+    {name:"vermelho", value: "#ed0000"},
+      {name:"laranja", value: "#ff8000"},
+      {name:"amarelo", value: "#fff200"},
+      {name:"verde", value:"#48ff00"},
+      {name:"azul", value:"#005eff"},
+      {name:"roxo", value:"#a600ed"},
+      {name:"rosa", value:"#ff00f7"},
+      {name:"branco", value: "#ffffff"},
+      {name:"preto", value:"#000000"}
+  )
+  .setRequired(true)
+)
+.addStringOption(option => 
+  option.setName("canal")
+  .setDescription("canal a ser enviada a postagem")
+  .addChoices(
+    {name:"tc-diário", value:"tc_diario"},
+    {name:"militadas-erradas", value:"militadas_erradas"},
+    {name:"jornal-local", value:"jornal_local"}
+  )
+  .setRequired(true)
+  )
     .addStringOption((option) =>
       option
         .setName("descrição")
-        .setDescription("Descreva sua notícia.")
-        .setRequired(true)
+        .setDescription("descreva sua notícia.")
     )
     .addStringOption((option) =>
-      option
-        .setName("imagem")
-        .setDescription("Url de uma imagem.")
-        .setRequired(true)
-    )
-    .addStringOption((option) =>
-      option.setName("autor").setDescription("Declare o autor do conteúdo.")
-    )
-    .addStringOption((option) =>
-      option.setName("subtitulo").setDescription("Adicione um subtitulo.")
+      option.setName("subtitulo").setDescription("adicione um subtitulo.")
     )
     .addStringOption((option) =>
       option
         .setName("subdescrição")
-        .setDescription("Adicione uma descrição ao subtitulo.")
+        .setDescription("adicione uma descrição ao subtitulo.")
     )
     .addStringOption((option) =>
-      option.setName("fonte").setDescription("Adicione uma fonte a notícia.")
-    )
-    .addStringOption((option) =>
-      option.setName("cor").setDescription("Escolha uma cor para a exibição.")
+      option.setName("fonte").setDescription("adicione uma fonte a notícia.")
     ),
   async execute(interaction) {
     const action = await interaction;
     try {
-      let url = new URL(action.options.getString("imagem"));
-      let autor = "";
-      if (action.options.getString("autor")) {
-        autor = " - Autor: " + action.options.getString("autor");
-      }
-
-      const exampleEmbed = new MessageEmbed()
-        .setColor("#b80000")
-        .setTitle(action.options.getString("título"))
-        .setDescription(action.options.getString("descrição"))
-        .setThumbnail(
-          "https://cdn.discordapp.com/attachments/844699066930954302/968664576013004861/Tragi.png"
-        )
-        .setImage(action.options.getString("imagem"))
-        .setTimestamp()
-        .setFooter({
-          text: "Publicado por: " + action.user.username + autor,
-          iconURL: action.user.avatarURL(),
-        });
-
-      let subtitulo = action.options.getString("subtitulo"),
-        subdescrição = action.options.getString("subdescrição");
-      let fonte = action.options.getString("fonte"),
-        cor = action.options.getString("cor");
-
-      if (fonte) {
-        let url2 = new URL(fonte);
-        exampleEmbed.setURL(fonte);
-      }
-
-      if (cor) {
-        let cores = {
-          vermelho: "#ed0000",
-          laranja: "#ff8000",
-          amarelo: "#fff200",
-          verde: "#48ff00",
-          azul: "#005eff",
-          roxo: "#a600ed",
-          rosa: "#ff00f7",
-          branco: "#ffffff",
-          preto: "#000000",
-        };
-        if (cores[cor]) {
-          exampleEmbed.setColor(cores[cor]);
-        }
-      }
-
-      if (subtitulo) {
-        let field = { name: subtitulo, value: "-" };
-        if (subdescrição) field["value"] = subdescrição;
-        exampleEmbed.addFields(field);
-      }
-
-      if (interaction.member.roles.cache.get("968688946043310150")) {
-        action.client.channels.cache
-          .find((channel) => channel.id == "968689805762367558")
-          .send({ embeds: [exampleEmbed] });
-        action.reply({
-          content: "Sua notícia foi publicada!",
-          ephemeral: false,
-        });
-        action.deleteReply();
-      } else {
-        action.client.channels.cache
-          .find((channel) => channel.id == "921501414847545394")
-          .send({ embeds: [exampleEmbed] });
-        action.reply({
-          content: "Sua notícia foi publicada!",
-          ephemeral: false,
-        });
-        action.deleteReply();
-      }
+      await sendEmbed(action);
     } catch (error) {
       action.reply({
         content: "URL inválido. Tente novamente!",
         ephemeral: true,
       });
+      console.log(error)
     }
   },
 };
